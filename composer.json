@@ -1,0 +1,11 @@
+{
+    "name": "game/f1-leaderboard",
+    "autoload": {
+        "psr-4": {
+            "Game\\": "src/"
+        }
+    },
+    "require": {
+        "smarty/smarty": "^5.5"
+    }
+}
