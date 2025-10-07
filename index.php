@@ -3,6 +3,9 @@ require_once 'vendor/autoload.php';
 session_start();
 
 use Smarty\Smarty;
+use Game\Driver;
+use Game\Admin;
+use Game\User;
 
 // 🔹 Smarty setup
 $template = new Smarty();
@@ -44,6 +47,14 @@ switch ($page) {
         $template->assign('form_action', 'index.php?page=home');
         $template->display('home.tpl');
         break;
+  case 'addUser':
+    $template->display('user-create.tpl');
+
+    break;
+  case 'userProfile':
+
+    break;
+
 
 
     // 🔸 Later kun je hier meer pagina’s toevoegen:

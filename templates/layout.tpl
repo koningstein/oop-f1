@@ -10,9 +10,10 @@
     <style>
         /* 🌈 Red Bull kleuren */
         :root {
-            --redbull-blue: #1E41FF;
-            --redbull-red: #DA291C;
-            --redbull-yellow: #FFD700;
+            --redbull-blue: #000B8D;
+            --redbull-red: #E21B4D;
+            --redbull-yellow: #FFD300;
+            --redbull-white: #F4EBEE;
         }
 
         body {
@@ -71,7 +72,7 @@
             color: #fff;
         }
         footer span {
-            color: var(--redbull-yellow);
+            color: var(--redbull-white);
         }
 
         /* 🔹 Lijst items */
@@ -104,8 +105,12 @@
                         <a class="nav-link {if $page == 'leaderboard'}active{/if}" href="index.php?page=leaderboard">Leaderboard</a>
                     </li>
                     <li class="nav-item">
+                        <a class="nav-link {if $page == 'addUser'}active{/if}" href="index.php?page=addUser">Maak Gebruiker aan</a>
+                    </li>
+                    <li class="nav-item">
                         <a class="nav-link {if $page == 'addlap'}active{/if}" href="index.php?page=addlap">Voeg ronde toe</a>
                     </li>
+
                 </ul>
             </div>
         </div>
