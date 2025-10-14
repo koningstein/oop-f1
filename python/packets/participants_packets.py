@@ -51,6 +51,7 @@ class ParticipantData:
         }
         return platforms.get(self.platform, f"Unknown_{self.platform}")
 
+
 class ParticipantsPacket:
     """
     Packet ID: 4 - Participants Data
@@ -96,57 +97,6 @@ class ParticipantsPacket:
                 offset += 1
                 show_online_names = struct.unpack('<B', data[offset:offset+1])[0]
                 offset += 1
-                tech_level = struct.unpack('<H', data[offset:offset+2])[0]
-                offset += 2
-                ready_status = struct.unpack('<B', data[offset:offset+1])[0]
-                offset += 1
-                
-                lobby_player = LobbyInfoData(
-                    ai_controlled, team_id, nationality, platform,
-                    name, car_number, your_telemetry, show_online_names,
-                    tech_level, ready_status
-                )
-                self.lobby_players.append(lobby_player)
-    
-    def get_ready_players(self) -> List[Tuple[int, LobbyInfoData]]:
-        """
-        Krijg alle spelers die ready zijn
-        
-        Returns:
-            List van (player_index, LobbyInfoData) tuples
-        """
-        ready = []
-        for i in range(self.num_players):
-            if i < len(self.lobby_players) and self.lobby_players[i].is_ready():
-                ready.append((i, self.lobby_players[i]))
-        return ready
-    
-    def get_not_ready_players(self) -> List[Tuple[int, LobbyInfoData]]:
-        """
-        Krijg alle spelers die nog niet ready zijn
-        
-        Returns:
-            List van (player_index, LobbyInfoData) tuples
-        """
-        not_ready = []
-        for i in range(self.num_players):
-            if i < len(self.lobby_players) and not self.lobby_players[i].is_ready() and not self.lobby_players[i].is_spectating():
-                not_ready.append((i, self.lobby_players[i]))
-        return not_ready
-    
-    def all_players_ready(self) -> bool:
-        """Check of alle spelers ready zijn (exclusief spectators)"""
-        for i in range(self.num_players):
-            if i < len(self.lobby_players):
-                player = self.lobby_players[i]
-                if not player.is_spectating() and not player.is_ready():
-                    return False
-        return True
-    
-    def __str__(self):
-        ready = len(self.get_ready_players())
-        not_ready = len(self.get_not_ready_players())
-        return f"LobbyInfo(players={self.num_players}, ready={ready}, not_ready={not_ready})"
                 tech_level = struct.unpack('<H', data[offset:offset+2])[0]
                 offset += 2
                 platform = struct.unpack('<B', data[offset:offset+1])[0]
@@ -208,6 +158,7 @@ class ParticipantsPacket:
         ai = len(self.get_ai_drivers())
         return f"Participants(total={self.num_active_cars}, humans={humans}, AI={ai})"
 
+
 @dataclass
 class LobbyInfoData:
     """
@@ -252,6 +203,7 @@ class LobbyInfoData:
         }
         return platforms.get(self.platform, f"Unknown_{self.platform}")
 
+
 class LobbyInfoPacket:
     """
     Packet ID: 9 - Lobby Info
@@ -292,3 +244,54 @@ class LobbyInfoPacket:
                 offset += 1
                 show_online_names = struct.unpack('<B', data[offset:offset+1])[0]
                 offset += 1
+                tech_level = struct.unpack('<H', data[offset:offset+2])[0]
+                offset += 2
+                ready_status = struct.unpack('<B', data[offset:offset+1])[0]
+                offset += 1
+                
+                lobby_player = LobbyInfoData(
+                    ai_controlled, team_id, nationality, platform,
+                    name, car_number, your_telemetry, show_online_names,
+                    tech_level, ready_status
+                )
+                self.lobby_players.append(lobby_player)
+    
+    def get_ready_players(self) -> List[Tuple[int, LobbyInfoData]]:
+        """
+        Krijg alle spelers die ready zijn
+        
+        Returns:
+            List van (player_index, LobbyInfoData) tuples
+        """
+        ready = []
+        for i in range(self.num_players):
+            if i < len(self.lobby_players) and self.lobby_players[i].is_ready():
+                ready.append((i, self.lobby_players[i]))
+        return ready
+    
+    def get_not_ready_players(self) -> List[Tuple[int, LobbyInfoData]]:
+        """
+        Krijg alle spelers die nog niet ready zijn
+        
+        Returns:
+            List van (player_index, LobbyInfoData) tuples
+        """
+        not_ready = []
+        for i in range(self.num_players):
+            if i < len(self.lobby_players) and not self.lobby_players[i].is_ready() and not self.lobby_players[i].is_spectating():
+                not_ready.append((i, self.lobby_players[i]))
+        return not_ready
+    
+    def all_players_ready(self) -> bool:
+        """Check of alle spelers ready zijn (exclusief spectators)"""
+        for i in range(self.num_players):
+            if i < len(self.lobby_players):
+                player = self.lobby_players[i]
+                if not player.is_spectating() and not player.is_ready():
+                    return False
+        return True
+    
+    def __str__(self):
+        ready = len(self.get_ready_players())
+        not_ready = len(self.get_not_ready_players())
+        return f"LobbyInfo(players={self.num_players}, ready={ready}, not_ready={not_ready})"
