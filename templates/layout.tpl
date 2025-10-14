@@ -10,7 +10,7 @@
     <style>
         /* 🌈 Red Bull kleuren */
         :root {
-            --redbull-blue: #000B8D;
+            --redbull-blue: #00205b;
             --redbull-red: #E21B4D;
             --redbull-yellow: #FFD300;
             --redbull-white: #F4EBEE;
@@ -105,13 +105,20 @@
                         <a class="nav-link {if $page == 'leaderboard'}active{/if}" href="index.php?page=leaderboard">Leaderboard</a>
                     </li>
                     <li class="nav-item">
+                        <a class="nav-link {if $page == 'addlap'}active{/if}" href="index.php?page=addlap">Voeg ronde toe</a>
+                    </li>
+                </ul>
+                <ul class="navbar-nav ms-auto mb-2 mb-md-0">
+                    <li class="nav-item" id="addUserNav">
                         <a class="nav-link {if $page == 'addUser'}active{/if}" href="index.php?page=addUser">Maak Gebruiker aan</a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link {if $page == 'addlap'}active{/if}" href="index.php?page=addlap">Voeg ronde toe</a>
+                    <li class="nav-item d-none" id="profileNav">
+                        <a class="nav-link {if $page == 'userProfile'}active{/if}" href="index.php?page=userProfile">Profile</a>
                     </li>
-
                 </ul>
+
             </div>
         </div>
     </nav>
@@ -131,6 +138,17 @@
     </div>
 </footer>
 
-<script defer src="./templates/js/bootstrap.bundle.min.js"></script>
+<script defer src="./JS/bootstrap.bundle.min.js"></script>
+<script>
+    // Example: set this variable to true after user creation (e.g., via PHP or inline script)
+    var userCreated = {if isset($user)}true{else}false{/if};
+
+    if (userCreated) {
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('addUserNav').classList.add('d-none');
+            document.getElementById('profileNav').classList.remove('d-none');
+        });
+    }
+</script>
 </body>
 </html>

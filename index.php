@@ -11,6 +11,9 @@ use Game\User;
 $template = new Smarty();
 $template->setTemplateDir('./templates');
 
+if (isset($_SESSION['user'])) {
+  $template->assign('user', $_SESSION['user']);
+}
 // Routing via 'page' parameter
 $page = $_GET['page'] ?? 'home';
 
@@ -48,22 +51,69 @@ switch ($page) {
         $template->display('home.tpl');
         break;
   case 'addUser':
+    if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+      $name = $_POST['name'] ?? '';
+      $class = $_POST['class'] ?? '';
+      $email = $_POST['email'] ?? '';
+
+      // Create Driver object
+      $driver = new Driver($name, $class, $email);
+      $_SESSION['driver'] = $driver;
+
+      $_SESSION['user'] = [
+        'name' => $name,
+        'class' => $class,
+        'email' => $email
+      ];
+
+      header('Location: index.php?page=user-created');
+      exit;
+    }
     $template->display('user-create.tpl');
-
     break;
+  case 'user-created':
+    $template->display('user-created.tpl');
+    break;
+
+    case 'leaderboard':
+        $template->assign('laps', $_SESSION['laps'] ?? []);
+        $template->display('leaderboard.tpl');
+        break;
   case 'userProfile':
+    if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
+      $name = trim($_POST['name'] ?? '');
+      $class = trim($_POST['class'] ?? '');
+      $email = trim($_POST['email'] ?? '');
+
+      // Update session user
+      $_SESSION['user']['name'] = $name;
+      $_SESSION['user']['class'] = $class;
+      $_SESSION['user']['email'] = $email;
+
+
+      header('Location: index.php?page=userProfile');
+      exit;
+    }
+    $template->display('user-profile.tpl');
     break;
+    case 'logout':
+        session_destroy();
+        $template->display('logout.tpl');
+        exit;
+        break;
+    case 'deleteLap':
+        if (isset($_POST['lapIndex']) && isset($_SESSION['laps'][$_POST['lapIndex']])) {
+            unset($_SESSION['laps'][$_POST['lapIndex']]);
+            $_SESSION['laps'] = array_values($_SESSION['laps']); // herindexeren
+        }
+        $template->assign('laps', $_SESSION['laps'] ?? []);
+        $template->display('leaderboard.tpl');
+        break;
 
 
 
-    // 🔸 Later kun je hier meer pagina’s toevoegen:
-    // case 'leaderboard':
-    //     // Haal rondes op uit database of sessie
-    //     $template->assign('laps', $laps);
-    //     $template->display('leaderboard.tpl');
-    //     break;
-
+  // 🔸 Later kun je hier meer pagina’s toevoegen:
     // case 'about':
     //     $template->display('about.tpl');
     //     break;
