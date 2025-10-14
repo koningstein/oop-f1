@@ -4,3 +4,4 @@ composer.lock
 templates_c/
 .env
 python/__pycache__/config.cpython-313.pyc
+python/packets/__pycache__/

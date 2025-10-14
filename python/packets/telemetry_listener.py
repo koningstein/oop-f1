@@ -52,6 +52,10 @@ class F1TelemetryListener:
         self.packets_processed = 0
         self.packets_errors = 0
         
+        # Status tracking voor console output
+        self.is_waiting_for_data = False
+        self.seen_packet_types = set()
+        
         # Parser mapping
         self.parsers = {
             PacketID.MOTION: MotionPacket,
