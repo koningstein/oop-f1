@@ -4,15 +4,15 @@ namespace Game;
 
 abstract class User
 {
-  protected $studentNumber;
   protected $name;
   protected $class;
+  protected $email;
 
-  public function __construct($name, $class = null, $studentNumber = null)
+  public function __construct($name, $class = null, $email = null)
   {
     $this->name = $name;
     $this->class = $class;
-    $this->studentNumber = $studentNumber;
+    $this->email = $email;
   }
 
   public function getName()
@@ -25,9 +25,9 @@ abstract class User
     return $this->class;
   }
 
-  public function getStudentNumber()
+  public function getEmail()
   {
-    return $this->studentNumber;
+    return $this->email;
   }
 
   public function setName($name)
@@ -40,9 +40,9 @@ abstract class User
     $this->class = $class;
   }
 
-  public function setStudentNumber($studentNumber)
+  public function setEmail($email)
   {
-    $this->studentNumber = $studentNumber;
+    $this->email = $email;
   }
 
   abstract public function getRole();
