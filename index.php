@@ -1,12 +1,12 @@
 <?php
 require_once 'vendor/autoload.php';
-session_start();
 
 use Smarty\Smarty;
 use Game\Driver;
 use Game\Admin;
 use Game\User;
 
+session_start();
 // 🔹 Smarty setup
 $template = new Smarty();
 $template->setTemplateDir('./templates');
