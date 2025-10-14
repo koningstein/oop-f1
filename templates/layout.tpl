@@ -112,6 +112,8 @@
                     <li class="nav-item" id="addUserNav">
                         <a class="nav-link {if $page == 'addUser'}active{/if}" href="index.php?page=addUser">Maak Gebruiker aan</a>
                     </li>
+                    <li class="nav-item">
+                        <a class="nav-link {if $page == 'addlap'}active{/if}" href="index.php?page=lapTimeForm">Voeg ronde toe</a>
                     <li class="nav-item d-none" id="profileNav">
                         <a class="nav-link {if $page == 'userProfile'}active{/if}" href="index.php?page=userProfile">Profile</a>
                     </li>
