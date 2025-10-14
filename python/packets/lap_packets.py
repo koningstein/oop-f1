@@ -23,7 +23,9 @@ class LapData:
     sector2_time_ms: int
     sector2_time_minutes: int
     delta_to_car_in_front_ms: int
+    delta_to_car_in_front_minutes: int
     delta_to_race_leader_ms: int
+    delta_to_race_leader_minutes: int
     lap_distance: float
     total_distance: float
     safety_car_delta: float
@@ -82,6 +84,7 @@ class LapData:
         except ValueError:
             return f"UNKNOWN_{self.result_status}"
 
+
 class LapDataPacket:
     """
     Packet ID: 2 - Lap Data
@@ -95,8 +98,10 @@ class LapDataPacket:
         self.lap_data: List[LapData] = []
         
         offset = 29
-        # Format voor LapData struct
-        fmt = '<IIHBHBHHfffBBBBBBBBBBBBBBBBHHB'
+        # Format string: EXACT 31 velden
+        # II = 2, HBHBHBHB = 8, fff = 3, 15xB = 15, HHB = 3
+        # Totaal: 2+8+3+15+3 = 31
+        fmt = '<IIHBHBHBHBfffBBBBBBBBBBBBBBBHHB'
         size = struct.calcsize(fmt)
         
         # Parse lap data voor alle auto's
@@ -107,7 +112,7 @@ class LapDataPacket:
                 offset += size
         
         # Time trial data (optioneel)
-        if offset + 1 <= len(data):
+        if offset + 2 <= len(data):
             self.time_trial_pb_car_idx = struct.unpack('<B', data[offset:offset+1])[0]
             offset += 1
             self.time_trial_rival_car_idx = struct.unpack('<B', data[offset:offset+1])[0]
@@ -137,6 +142,7 @@ class LapDataPacket:
         # Sorteer op positie
         leaderboard.sort(key=lambda x: x[1].car_position)
         return leaderboard
+
 
 class LapPositionsPacket:
     """

@@ -348,6 +348,101 @@ def example_multiplayer_leaderboard():
     listener.start()
 
 
+# ===== VOORBEELD 8: RONDETIJDEN MET SECTORTIJDEN =====
+def example_lap_times():
+    """
+    Toon rondetijden met sectortijden per ronde
+    """
+    print("\n📋 VOORBEELD 8: Rondetijden met Sectortijden")
+    print("=" * 70)
+    
+    driver_names = {}
+    last_lap_printed = {}
+    
+    def handle_participants(packet: ParticipantsPacket):
+        nonlocal driver_names
+        for i in range(packet.num_active_cars):
+            if i < len(packet.participants):
+                driver_names[i] = packet.participants[i].name
+    
+    def format_sector_time(ms_part: int, min_part: int) -> str:
+        """Converteer sector tijd naar leesbaar formaat"""
+        if ms_part == 0 and min_part == 0:
+            return "--:--.---"
+        
+        total_seconds = (min_part * 60) + (ms_part / 1000.0)
+        minutes = int(total_seconds // 60)
+        seconds = total_seconds % 60
+        
+        if minutes > 0:
+            return f"{minutes}:{seconds:06.3f}"
+        else:
+            return f"{seconds:.3f}s"
+    
+    def handle_lap_data(packet: LapDataPacket):
+        nonlocal last_lap_printed
+        player_idx = packet.header.player_car_index
+        player_data = packet.get_player_lap_data()
+        
+        # Toon huidige status
+        print(f"\r🏎️  Lap {player_data.current_lap_num} | "
+              f"Sector {player_data.sector} | "
+              f"Current: {player_data.get_current_lap_time_str()} | "
+              f"Position: P{player_data.car_position}", 
+              end='', flush=True)
+        
+        # Als er een nieuwe rondetijd is
+        if player_data.last_lap_time_ms > 0:
+            # Voorkom dubbele output
+            lap_key = (player_idx, player_data.current_lap_num, player_data.last_lap_time_ms)
+            if lap_key in last_lap_printed:
+                return
+            last_lap_printed[lap_key] = True
+            
+            driver_name = driver_names.get(player_idx, "You")
+            valid = "✓ GELDIG" if not player_data.current_lap_invalid else "✗ ONGELDIG"
+            
+            # Format sectortijden
+            sector1 = format_sector_time(player_data.sector1_time_ms, player_data.sector1_time_minutes)
+            sector2 = format_sector_time(player_data.sector2_time_ms, player_data.sector2_time_minutes)
+            
+            # Bereken sector 3
+            if player_data.sector1_time_ms > 0 and player_data.sector2_time_ms > 0:
+                total_ms = player_data.last_lap_time_ms
+                s1_total = (player_data.sector1_time_minutes * 60000) + player_data.sector1_time_ms
+                s2_total = (player_data.sector2_time_minutes * 60000) + player_data.sector2_time_ms
+                s3_ms = total_ms - s1_total - s2_total
+                
+                if s3_ms > 0:
+                    s3_seconds = s3_ms / 1000.0
+                    sector3 = f"{s3_seconds:.3f}s"
+                else:
+                    sector3 = "--:--.---"
+            else:
+                sector3 = "--:--.---"
+            
+            # Print mooie output
+            print(f"\n\n{'='*70}")
+            print(f"🏁 RONDE {player_data.current_lap_num - 1} VOLTOOID!")
+            print(f"{'='*70}")
+            print(f"  Driver:     {driver_name}")
+            print(f"  Positie:    P{player_data.car_position}")
+            print(f"  Status:     {valid}")
+            print(f"{'-'*70}")
+            print(f"  📊 SECTORTIJDEN:")
+            print(f"     Sector 1:  {sector1}")
+            print(f"     Sector 2:  {sector2}")
+            print(f"     Sector 3:  {sector3}")
+            print(f"{'-'*70}")
+            print(f"  ⏱️  RONDETIJD: {player_data.get_last_lap_time_str()}")
+            print(f"{'='*70}\n")
+    
+    listener = F1TelemetryListener()
+    listener.register_handler(PacketID.PARTICIPANTS, handle_participants)
+    listener.register_handler(PacketID.LAP_DATA, handle_lap_data)
+    listener.start()
+
+
 # ===== HOOFD MENU =====
 def main():
     """
@@ -364,11 +459,12 @@ def main():
     print("  5. Volledig Dashboard")
     print("  6. Data Logger (opslaan naar bestanden)")
     print("  7. Multiplayer Leaderboard")
+    print("  8. Rondetijden met Sectortijden")
     print("\n  0. Afsluiten")
     print("=" * 60)
     
     try:
-        choice = input("\nKeuze (0-7): ").strip()
+        choice = input("\nKeuze (0-8): ").strip()
         
         if choice == "1":
             example_basic_telemetry()
@@ -384,6 +480,8 @@ def main():
             example_data_logger()
         elif choice == "7":
             example_multiplayer_leaderboard()
+        elif choice == "8":
+            example_lap_times()
         elif choice == "0":
             print("\n👋 Tot ziens!")
         else:
