@@ -385,12 +385,10 @@ def race_live_klassement():
             print(f"\n❌ Fout: {e}")
 
 
-# ==================== PLACEHOLDER FUNCTIES ====================
-
 def race_deltas():
-    """Race Mode: Delta's tussen rijders"""
+    """Race Mode: Live sectortijden tijdens het rijden met mooie tabel-layout"""
     print("\n⏱️  LIVE RONDETIJDEN MET SECTORTIJDEN")
-    print("=" * 70)
+    print("=" * 80)
     print("Druk op ENTER om te stoppen\n")
     
     driver_names = {}
@@ -416,43 +414,61 @@ def race_deltas():
         # Initialiseer sector data voor deze lap als die nog niet bestaat
         if sector_key not in sector_data:
             sector_data[sector_key] = {
-                's1': 0,
-                's2': 0,
+                's1_ms': 0,
+                's1_min': 0,
+                's2_ms': 0,
+                's2_min': 0,
                 's1_printed': False,
-                's2_printed': False
+                's2_printed': False,
+                's3_printed': False,
+                's1_invalid': False,
+                's2_invalid': False,
+                's3_invalid': False
             }
         
         # Check of sector 1 nieuw is en nog niet geprint
         current_s1_time = player_data.sector1_time_ms
         if current_s1_time > 0 and not sector_data[sector_key]['s1_printed']:
-            sector_data[sector_key]['s1'] = current_s1_time
+            sector_data[sector_key]['s1_ms'] = player_data.sector1_time_ms
+            sector_data[sector_key]['s1_min'] = player_data.sector1_time_minutes
             sector_data[sector_key]['s1_printed'] = True
             
             sector_time = format_sector_time(player_data.sector1_time_ms, player_data.sector1_time_minutes)
             driver_name = driver_names.get(player_idx, f"Car {player_idx}")
             
-            print(f"\n⏱️  {driver_name} - SECTOR 1: {sector_time}")
+            # Toon live sector status met validatie
+            valid_icon = "🟢" if not player_data.current_lap_invalid else "🟠"
+            print(f"\n{valid_icon} SECTOR 1 | {driver_name}: {sector_time}")
+            
+            # Sla validatie status op
+            sector_data[sector_key]['s1_invalid'] = player_data.current_lap_invalid
         
         # Check of sector 2 nieuw is en nog niet geprint
         current_s2_time = player_data.sector2_time_ms
         if current_s2_time > 0 and not sector_data[sector_key]['s2_printed']:
-            sector_data[sector_key]['s2'] = current_s2_time
+            sector_data[sector_key]['s2_ms'] = player_data.sector2_time_ms
+            sector_data[sector_key]['s2_min'] = player_data.sector2_time_minutes
             sector_data[sector_key]['s2_printed'] = True
             
             sector_time = format_sector_time(player_data.sector2_time_ms, player_data.sector2_time_minutes)
             driver_name = driver_names.get(player_idx, f"Car {player_idx}")
             
-            print(f"\n⏱️  {driver_name} - SECTOR 2: {sector_time}")
+            # Toon live sector status met validatie
+            valid_icon = "🟡" if not player_data.current_lap_invalid else "🟠"
+            print(f"\n{valid_icon} SECTOR 2 | {driver_name}: {sector_time}")
+            
+            # Sla validatie status op
+            sector_data[sector_key]['s2_invalid'] = player_data.current_lap_invalid
         
         # Sector is 0-indexed: 0=sector1, 1=sector2, 2=sector3
         current_sector_display = player_data.sector + 1
         
-        # Toon huidige status - gebruik \n voor nieuwe regel ipv \r
-        if packet.header.frame_identifier % 10 == 0:  # Update elke 10 frames
-            print(f"🏎️  Lap {player_data.current_lap_num} | "
+        # Toon huidige status
+        if packet.header.frame_identifier % 15 == 0:
+            print(f"\r🏎️  Lap {player_data.current_lap_num} | "
                   f"Sector {current_sector_display} | "
                   f"P{player_data.car_position} | "
-                  f"Time: {player_data.get_current_lap_time_str()}", end='\r', flush=True)
+                  f"Time: {player_data.get_current_lap_time_str()}", end='', flush=True)
         
         # Als ronde voltooid
         if player_data.last_lap_time_ms > 0:
@@ -461,40 +477,71 @@ def race_deltas():
                 last_lap_printed[lap_key] = True
                 
                 driver_name = driver_names.get(player_idx, f"Car {player_idx}")
+                completed_lap_num = player_data.current_lap_num - 1  # De lap die net voltooid is
+                completed_lap_key = (player_idx, completed_lap_num)
                 
-                # Gebruik de HUIDIGE lap data (die net voltooid is)
-                # Deze data zit in sector_key van de LAP die net AF is (current_lap_num - 1)
-                prev_lap_key = (player_idx, player_data.current_lap_num - 1)
+                # Bereken sector 3 uit onze opgeslagen data
+                sector1_str = "--:--.---"
+                sector2_str = "--:--.---"
+                sector3_str = "--:--.---"
                 
-                # Format sectortijden
-                sector1 = format_sector_time(player_data.sector1_time_ms, player_data.sector1_time_minutes)
-                sector2 = format_sector_time(player_data.sector2_time_ms, player_data.sector2_time_minutes)
-                
-                # Bereken sector 3
-                sector3 = "--:--.---"
-                if player_data.sector1_time_ms > 0 and player_data.sector2_time_ms > 0:
-                    total_ms = player_data.last_lap_time_ms
-                    s1_total = (player_data.sector1_time_minutes * 60000) + player_data.sector1_time_ms
-                    s2_total = (player_data.sector2_time_minutes * 60000) + player_data.sector2_time_ms
-                    s3_ms = total_ms - s1_total - s2_total
+                if completed_lap_key in sector_data:
+                    s1_total = (sector_data[completed_lap_key]['s1_min'] * 60000) + sector_data[completed_lap_key]['s1_ms']
+                    s2_total = (sector_data[completed_lap_key]['s2_min'] * 60000) + sector_data[completed_lap_key]['s2_ms']
                     
-                    if s3_ms > 0:
-                        s3_seconds = s3_ms / 1000.0
-                        sector3 = f"{s3_seconds:.3f}s"
+                    if s1_total > 0:
+                        sector1_str = format_time(s1_total)
+                    
+                    if s2_total > 0:
+                        sector2_str = format_time(s2_total)
+                    
+                    if s1_total > 0 and s2_total > 0:
+                        s3_ms = player_data.last_lap_time_ms - s1_total - s2_total
+                        
+                        if s3_ms > 0 and not sector_data[completed_lap_key]['s3_printed']:
+                            sector_data[completed_lap_key]['s3_printed'] = True
+                            sector3_str = format_time(s3_ms)
+                            
+                            # Sector 3 validatie - gebruik finale lap status
+                            sector_data[completed_lap_key]['s3_invalid'] = player_data.current_lap_invalid
+                            valid_icon = "🔴" if not player_data.current_lap_invalid else "🟠"
+                            print(f"\n{valid_icon} SECTOR 3 | {driver_name}: {sector3_str}")
                 
-                print(f"\n\n{'='*70}")
-                print(f"🏁 {driver_name} - RONDE {player_data.current_lap_num - 1} VOLTOOID!")
-                print(f"{'='*70}")
-                print(f"  Positie:    P{player_data.car_position}")
-                print(f"  Status:     {'✓ GELDIG' if not player_data.current_lap_invalid else '✗ ONGELDIG'}")
-                print(f"{'-'*70}")
-                print(f"  📊 SECTORTIJDEN:")
-                print(f"     Sector 1:  {sector1}")
-                print(f"     Sector 2:  {sector2}")
-                print(f"     Sector 3:  {sector3}")
-                print(f"{'-'*70}")
-                print(f"  ⏱️  RONDETIJD: {player_data.get_last_lap_time_str()}")
-                print(f"{'='*70}\n")
+                # Mooie tabel weergave van de voltooide ronde
+                print(f"\n\n{'='*80}")
+                print(f"🏁 LAP {completed_lap_num} COMPLETED - {driver_name}")
+                print(f"{'='*80}")
+                print(f"{'SECTOR':<15} {'TIME':<12} {'CUMULATIVE':<15} {'STATUS':<10}")
+                print(f"{'-'*80}")
+                
+                # Bereken cumulatieve tijden
+                s1_total = (sector_data.get(completed_lap_key, {}).get('s1_min', 0) * 60000) + sector_data.get(completed_lap_key, {}).get('s1_ms', 0)
+                s2_total = (sector_data.get(completed_lap_key, {}).get('s2_min', 0) * 60000) + sector_data.get(completed_lap_key, {}).get('s2_ms', 0)
+                
+                cum1 = format_time(s1_total) if s1_total > 0 else "--:--.---"
+                cum2 = format_time(s1_total + s2_total) if s1_total > 0 and s2_total > 0 else "--:--.---"
+                
+                # Bepaal individuele sector status uit opgeslagen data
+                completed_lap_data = sector_data.get(completed_lap_key, {})
+                
+                s1_status = "✗" if completed_lap_data.get('s1_invalid', False) else "✓"
+                s2_status = "✗" if completed_lap_data.get('s2_invalid', False) else "✓"  
+                s3_status = "✗" if completed_lap_data.get('s3_invalid', False) else "✓"
+                
+                print(f"{'Sector 1':<15} {sector1_str:<12} {cum1:<15} {s1_status:<10}")
+                print(f"{'Sector 2':<15} {sector2_str:<12} {cum2:<15} {s2_status:<10}")
+                print(f"{'Sector 3':<15} {sector3_str:<12} {player_data.get_last_lap_time_str():<15} {s3_status:<10}")
+                
+                # Bereken correcte lap validatie: als één sector invalid is, is hele lap invalid
+                any_sector_invalid = (completed_lap_data.get('s1_invalid', False) or 
+                                    completed_lap_data.get('s2_invalid', False) or 
+                                    completed_lap_data.get('s3_invalid', False))
+                
+                lap_status = "INVALID" if any_sector_invalid else "VALID"
+                
+                print(f"{'-'*80}")
+                print(f"{'TOTAL LAP TIME':<15} {player_data.get_last_lap_time_str():<12} {'P' + str(player_data.car_position):<15} {lap_status:<10}")
+                print(f"{'='*80}\n")
     
     listener = F1TelemetryListener()
     listener.register_handler(PacketID.PARTICIPANTS, handle_participants)
@@ -509,6 +556,9 @@ def race_deltas():
     except Exception as e:
         if "10048" not in str(e):
             print(f"\n❌ Fout: {e}")
+
+
+# ==================== PLACEHOLDER FUNCTIES ====================
 
 def toernooi_stand():
     """Toernooi: Kampioenschapsstand"""
