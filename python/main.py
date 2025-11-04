@@ -1,6 +1,8 @@
 """
-F1 25 Telemetry - Main Example
+F1 25 Telemetry - Main Example - MET DATABASE INTEGRATIE
 Voorbeelden van hoe je de telemetry listener gebruikt
+
+ORIGINELE CODE VOLLEDIG BEHOUDEN + DATABASE FUNCTIES TOEGEVOEGD
 """
 
 from telemetry_listener import F1TelemetryListener, create_simple_listener
@@ -14,8 +16,36 @@ from car_packets import CarTelemetryPacket, CarStatusPacket, CarDamagePacket
 from participants_packets import ParticipantsPacket, LobbyInfoPacket
 from other_packets import FinalClassificationPacket
 
+# Import je screens
+from screens.screen1 import main_menu as screen1_menu  # Je nieuwe screen1 met database
+try:
+    from screens.screen3 import toon_alle_data as screen3_data
+    from screens.screen4 import toon_alle_data as screen4_data
+    from screens.screen5 import main_menu as screen5_menu
+except ImportError:
+    # Fallback als screens niet bestaan
+    def screen3_data():
+        print("⚠️ Screen 3 niet gevonden")
+        input("Druk op ENTER...")
+    def screen4_data():
+        print("⚠️ Screen 4 niet gevonden") 
+        input("Druk op ENTER...")
+    def screen5_menu():
+        print("⚠️ Screen 5 niet gevonden")
+        input("Druk op ENTER...")
 
-# ===== VOORBEELD 1: BASIS TELEMETRIE =====
+# DATABASE IMPORTS TOEGEVOEGD
+try:
+    from telemetry_db_integration import telemetry_db_integration
+    from database_config import db_config
+    from telemetry_utils import TelemetryUtils
+    DATABASE_AVAILABLE = True
+    utils = TelemetryUtils()
+except ImportError:
+    DATABASE_AVAILABLE = False
+
+
+# ===== VOORBEELD 1: BASIS TELEMETRIE (ORIGINEEL) =====
 def example_basic_telemetry():
     """
     Simpel voorbeeld: Toon snelheid, versnelling, RPM
@@ -38,7 +68,7 @@ def example_basic_telemetry():
     listener.start()
 
 
-# ===== VOORBEELD 2: SESSIE INFORMATIE =====
+# ===== VOORBEELD 2: SESSIE INFORMATIE (ORIGINEEL) =====
 def example_session_info():
     """
     Toon sessie informatie en lap data
@@ -69,7 +99,7 @@ def example_session_info():
     listener.start()
 
 
-# ===== VOORBEELD 3: EVENTS TRACKER =====
+# ===== VOORBEELD 3: EVENTS TRACKER (ORIGINEEL) =====
 def example_events():
     """
     Track belangrijke race events
@@ -129,7 +159,7 @@ def example_events():
     listener.start()
 
 
-# ===== VOORBEELD 4: SCHADE MONITOR =====
+# ===== VOORBEELD 4: SCHADE MONITOR (ORIGINEEL) =====
 def example_damage_monitor():
     """
     Monitor schade aan je auto
@@ -170,7 +200,7 @@ def example_damage_monitor():
     listener.start()
 
 
-# ===== VOORBEELD 5: UITGEBREIDE DASHBOARD =====
+# ===== VOORBEELD 5: UITGEBREIDE DASHBOARD (ORIGINEEL) =====
 def example_full_dashboard():
     """
     Uitgebreid dashboard met meerdere data types
@@ -228,7 +258,7 @@ def example_full_dashboard():
     listener.start()
 
 
-# ===== VOORBEELD 6: DATA LOGGER =====
+# ===== VOORBEELD 6: DATA LOGGER (ORIGINEEL) =====
 def example_data_logger():
     """
     Log alle data naar bestanden (voor latere analyse)
@@ -294,7 +324,7 @@ def example_data_logger():
         print(f"\n✓ Logs opgeslagen!")
 
 
-# ===== VOORBEELD 7: MULTIPLAYER LEADERBOARD =====
+# ===== VOORBEELD 7: MULTIPLAYER LEADERBOARD (ORIGINEEL) =====
 def example_multiplayer_leaderboard():
     """
     Toon real-time leaderboard in multiplayer
@@ -348,7 +378,7 @@ def example_multiplayer_leaderboard():
     listener.start()
 
 
-# ===== VOORBEELD 8: RONDETIJDEN MET SECTORTIJDEN =====
+# ===== VOORBEELD 8: RONDETIJDEN MET SECTORTIJDEN (ORIGINEEL) =====
 def example_lap_times():
     """
     Toon rondetijden met sectortijden per ronde
@@ -443,28 +473,323 @@ def example_lap_times():
     listener.start()
 
 
-# ===== HOOFD MENU =====
-def main():
-    """
-    Hoofd menu om een voorbeeld te kiezen
-    """
-    print("\n" + "=" * 60)
-    print("🏎️  F1 25 TELEMETRY - VOORBEELDEN")
+# ===== NIEUWE DATABASE FUNCTIES =====
+
+def check_database_connection():
+    """Check database verbinding"""
+    if not DATABASE_AVAILABLE:
+        print("❌ Database modules niet beschikbaar")
+        print("💡 Installeer: pip install -r requirements.txt")
+        return False
+    
+    print("\n🔧 Database Verbinding Test")
+    print("=" * 40)
+    
+    if db_config.test_connection():
+        print("✅ Database verbinding OK")
+        return True
+    else:
+        print("❌ Database verbinding gefaald")
+        print("💡 Tips:")
+        print("   - Check of MySQL/MariaDB draait")
+        print("   - Controleer .env bestand configuratie")
+        print("   - Run 'python setup.py' voor eerste setup")
+        return False
+
+def database_test_menu():
+    """Database test en management menu"""
+    while True:
+        print("\n" + "="*50)
+        print("🗄️  DATABASE TEST & BEHEER")
+        print("="*50)
+        print("1. Test database verbinding")
+        print("2. Test rondetijd opslaan")
+        print("3. Toon database leaderboard")
+        print("4. Database statistieken")
+        print("5. Manual rondetijd toevoegen")
+        print("0. Terug")
+        
+        keuze = input("\nKeuze (0-5): ").strip()
+        
+        if keuze == "1":
+            check_database_connection()
+            input("Druk op ENTER...")
+        elif keuze == "2":
+            test_database_save()
+        elif keuze == "3":
+            toon_database_leaderboard()
+        elif keuze == "4":
+            toon_database_stats()
+        elif keuze == "5":
+            manual_lap_time()
+        elif keuze == "0":
+            break
+        else:
+            print("❌ Ongeldige keuze")
+
+def test_database_save():
+    """Test het opslaan van een rondetijd"""
+    if not DATABASE_AVAILABLE:
+        print("❌ Database niet beschikbaar")
+        input("Druk op ENTER...")
+        return
+    
+    print("\n🧪 Test Database Opslaan")
+    print("-" * 30)
+    
+    # Setup test sessie
+    telemetry_db_integration.set_session_info("Silverstone (Test)", "Practice")
+    
+    # Test rondetijd
+    lap_id = telemetry_db_integration.manual_save_lap_time(
+        driver_name="Test Driver",
+        lap_time=87.234,
+        sector1=29.1,
+        sector2=28.9,
+        sector3=29.234,
+        is_valid=True
+    )
+    
+    if lap_id:
+        print(f"✅ Test rondetijd opgeslagen - ID: {lap_id}")
+        print(f"   Driver: Test Driver")
+        print(f"   Tijd: 1:27.234")
+        print(f"   Circuit: Silverstone (Test)")
+    else:
+        print("❌ Fout bij opslaan test rondetijd")
+    
+    input("Druk op ENTER...")
+
+def toon_database_leaderboard():
+    """Toon leaderboard uit database"""
+    if not DATABASE_AVAILABLE:
+        print("❌ Database niet beschikbaar")
+        input("Druk op ENTER...")
+        return
+    
+    track = input("Circuit naam (of ENTER voor huidige): ").strip()
+    
+    if not track:
+        if telemetry_db_integration._current_track:
+            track = telemetry_db_integration._current_track
+        else:
+            track = "Silverstone (Test)"
+            telemetry_db_integration.set_session_info(track, "Practice")
+    
+    leaderboard = telemetry_db_integration.get_current_leaderboard(15)
+    
+    if not leaderboard:
+        print(f"📭 Geen rondetijden gevonden voor {track}")
+        input("Druk op ENTER...")
+        return
+    
+    print(f"\n🏆 LEADERBOARD - {track}")
     print("=" * 60)
-    print("\nKies een voorbeeld:")
-    print("  1. Basis Telemetrie (snelheid, RPM, versnelling)")
-    print("  2. Sessie Informatie (circuit, weer, rondetijden)")
-    print("  3. Event Tracker (fastest lap, penalties, race winner)")
-    print("  4. Schade Monitor")
-    print("  5. Volledig Dashboard")
-    print("  6. Data Logger (opslaan naar bestanden)")
-    print("  7. Multiplayer Leaderboard")
-    print("  8. Rondetijden met Sectortijden")
-    print("\n  0. Afsluiten")
-    print("=" * 60)
+    print(f"{'#':<3} {'Driver':<20} {'Best':<12} {'Laps':<6} {'Avg':<12}")
+    print("-" * 60)
+    
+    for i, entry in enumerate(leaderboard, 1):
+        driver = entry['driver_name']
+        best = utils.format_lap_time(entry['best_lap_time'])
+        laps = entry['total_laps']
+        avg = utils.format_lap_time(entry['average_lap_time'])
+        
+        print(f"{i:<3} {driver:<20} {best:<12} {laps:<6} {avg:<12}")
+    
+    input("\nDruk op ENTER...")
+
+def toon_database_stats():
+    """Toon database statistieken"""
+    if not DATABASE_AVAILABLE:
+        print("❌ Database niet beschikbaar")
+        input("Druk op ENTER...")
+        return
+    
+    from lap_time_database import lap_db
+    
+    print("\n📊 DATABASE STATISTIEKEN")
+    print("=" * 40)
+    
+    # Recente sessies
+    recent = lap_db.get_recent_sessions(hours=24, limit=5)
+    print(f"Rondetijden laatste 24u: {len(recent)}")
+    
+    if recent:
+        latest = recent[0]
+        print(f"Laatste rondetijd: {latest['driver_name']} - {latest['lap_time']:.3f}s")
+        print(f"Circuit: {latest['track_name']}")
+        print(f"Tijd: {latest['session_date']}")
+    
+    input("Druk op ENTER...")
+
+def manual_lap_time():
+    """Handmatig een rondetijd toevoegen"""
+    if not DATABASE_AVAILABLE:
+        print("❌ Database niet beschikbaar")
+        input("Druk op ENTER...")
+        return
+    
+    print("\n✍️  Handmatige Rondetijd")
+    print("-" * 30)
+    
+    track = input("Circuit (of ENTER voor huidige): ").strip()
+    if not track:
+        if telemetry_db_integration._current_track:
+            track = telemetry_db_integration._current_track
+        else:
+            track = input("Circuit naam: ").strip()
+    
+    if not track:
+        print("❌ Circuit naam is verplicht")
+        input("Druk op ENTER...")
+        return
+    
+    # Setup sessie
+    telemetry_db_integration.set_session_info(track, "Practice")
+    
+    driver = input("Driver naam: ").strip()
+    tijd = input("Rondetijd (bijv. 1:23.456): ").strip()
+    
+    if not driver or not tijd:
+        print("❌ Driver naam en tijd zijn verplicht")
+        input("Druk op ENTER...")
+        return
     
     try:
-        choice = input("\nKeuze (0-8): ").strip()
+        # Parse tijd
+        if ':' in tijd:
+            parts = tijd.split(':')
+            minutes = int(parts[0])
+            seconds = float(parts[1])
+            total_seconds = (minutes * 60) + seconds
+        else:
+            total_seconds = float(tijd)
+        
+        # Sla op
+        lap_id = telemetry_db_integration.manual_save_lap_time(driver, total_seconds)
+        
+        if lap_id:
+            print(f"✅ Rondetijd opgeslagen - ID: {lap_id}")
+        else:
+            print("❌ Fout bij opslaan")
+            
+    except ValueError:
+        print("❌ Ongeldige tijd format")
+    
+    input("Druk op ENTER...")
+
+
+# ===== VOORBEELD 9: RONDETIJDEN MET DATABASE (NIEUW) =====
+def example_lap_times_with_database():
+    """
+    NIEUW VOORBEELD: Rondetijden met automatische database opslag
+    """
+    if not DATABASE_AVAILABLE:
+        print("❌ Database niet beschikbaar voor dit voorbeeld")
+        input("Druk op ENTER...")
+        return
+    
+    print("\n📋 VOORBEELD 9: Rondetijden met Database Opslag")
+    print("=" * 70)
+    print("💾 Rondetijden worden automatisch opgeslagen in database")
+    
+    driver_names = {}
+    last_lap_printed = {}
+    session_started = False
+    
+    # Database callbacks
+    def on_lap_saved(lap_result):
+        print(f"\n💾 Opgeslagen: {lap_result['driver_name']} - {lap_result['lap_time_formatted']}")
+    
+    def on_new_best(lap_result):
+        print(f"\n🏆 NIEUWE BESTE TIJD! {lap_result['driver_name']}: {lap_result['lap_time_formatted']}")
+    
+    telemetry_db_integration.add_lap_completed_callback(on_lap_saved)
+    telemetry_db_integration.add_new_best_time_callback(on_new_best)
+    
+    def handle_participants(packet: ParticipantsPacket):
+        nonlocal driver_names
+        for i in range(packet.num_active_cars):
+            if i < len(packet.participants):
+                driver_names[i] = packet.participants[i].name
+    
+    def handle_session(packet: SessionPacket):
+        nonlocal session_started
+        if not session_started:
+            track_name = packet.get_track_name()
+            session_type = packet.get_session_type_name()
+            telemetry_db_integration.set_session_info(track_name, session_type)
+            session_started = True
+            print(f"\n💾 Database sessie gestart: {session_type} op {track_name}")
+    
+    def handle_lap_data(packet: LapDataPacket):
+        nonlocal last_lap_printed
+        
+        # DATABASE INTEGRATIE - automatisch opslaan
+        results = telemetry_db_integration.process_lap_data_packet(packet)
+        
+        # ORIGINELE LAP DISPLAY CODE
+        player_idx = packet.header.player_car_index
+        player_data = packet.get_player_lap_data()
+        
+        # Toon huidige status
+        print(f"\r🏎️  Lap {player_data.current_lap_num} | "
+              f"Sector {player_data.sector} | "
+              f"Current: {player_data.get_current_lap_time_str()} | "
+              f"Position: P{player_data.car_position}", 
+              end='', flush=True)
+        
+        # Als er een nieuwe rondetijd is
+        if player_data.last_lap_time_ms > 0:
+            lap_key = (player_idx, player_data.current_lap_num, player_data.last_lap_time_ms)
+            if lap_key in last_lap_printed:
+                return
+            last_lap_printed[lap_key] = True
+            
+            driver_name = driver_names.get(player_idx, "You")
+            valid = "✓ GELDIG" if not player_data.current_lap_invalid else "✗ ONGELDIG"
+            
+            print(f"\n\n{'='*70}")
+            print(f"🏁 RONDE {player_data.current_lap_num - 1} VOLTOOID!")
+            print(f"{'='*70}")
+            print(f"  Driver:     {driver_name}")
+            print(f"  Positie:    P{player_data.car_position}")
+            print(f"  Status:     {valid}")
+            print(f"  ⏱️  RONDETIJD: {player_data.get_last_lap_time_str()}")
+            print(f"{'='*70}")
+    
+    try:
+        listener = F1TelemetryListener()
+        listener.register_handler(PacketID.PARTICIPANTS, handle_participants)
+        listener.register_handler(PacketID.SESSION, handle_session)
+        listener.register_handler(PacketID.LAP_DATA, handle_lap_data)
+        listener.start()
+    finally:
+        # Cleanup
+        telemetry_db_integration.remove_lap_completed_callback(on_lap_saved)
+        telemetry_db_integration.remove_new_best_time_callback(on_new_best)
+
+
+# ===== HOOFD MENU (UITGEBREID MET DATABASE EN SCREENS) =====
+def examples_menu():
+    """Submenu voor originele voorbeelden"""
+    while True:
+        print("\n" + "=" * 60)
+        print("📋 TELEMETRY VOORBEELDEN")
+        print("=" * 60)
+        print("  1. Basis Telemetrie (snelheid, RPM, versnelling)")
+        print("  2. Sessie Informatie (circuit, weer, rondetijden)")
+        print("  3. Event Tracker (fastest lap, penalties, race winner)")
+        print("  4. Schade Monitor")
+        print("  5. Volledig Dashboard")
+        print("  6. Data Logger (opslaan naar bestanden)")
+        print("  7. Multiplayer Leaderboard")
+        print("  8. Rondetijden met Sectortijden")
+        if DATABASE_AVAILABLE:
+            print("  9. Rondetijden met Database ✨")
+        print("\n  0. Terug")
+        
+        choice = input("\nKeuze (0-9): ").strip()
         
         if choice == "1":
             example_basic_telemetry()
@@ -482,14 +807,61 @@ def main():
             example_multiplayer_leaderboard()
         elif choice == "8":
             example_lap_times()
+        elif choice == "9" and DATABASE_AVAILABLE:
+            example_lap_times_with_database()
         elif choice == "0":
-            print("\n👋 Tot ziens!")
+            break
         else:
-            print("\n❌ Ongeldige keuze!")
-            main()
+            print("❌ Ongeldige keuze!")
+
+def main():
+    """
+    Hoofdmenu - UITGEBREID MET SCREENS EN DATABASE
+    """
+    print("🏎️  F1 25 Telemetry System")
+    print("=" * 50)
     
-    except KeyboardInterrupt:
-        print("\n\n👋 Tot ziens!")
+    # Check database status
+    db_status = "✅" if DATABASE_AVAILABLE and check_database_connection() else "❌"
+    
+    while True:
+        print("\n" + "="*60)
+        print("🏎️  F1 25 TELEMETRY HOOFDMENU")
+        print("="*60)
+        print("SCHERMEN:")
+        print("1. Scherm 1 - Overzicht/Leaderboard/Toernooi")
+        print("2. Scherm 3 - Realtime Data Auto 1") 
+        print("3. Scherm 4 - Realtime Data Auto 2")
+        print("4. Scherm 5 - Race Strategy & Tyre Management")
+        print("")
+        print("VOORBEELDEN:")
+        print("5. Telemetry Voorbeelden")
+        print("")
+        print("DATABASE:", db_status)
+        if DATABASE_AVAILABLE:
+            print("6. Database Test & Beheer")
+        print("")
+        print("0. Afsluiten")
+        
+        keuze = input("\nKeuze (0-6): ").strip()
+        
+        if keuze == "1":
+            screen1_menu()
+        elif keuze == "2":
+            screen3_data()
+        elif keuze == "3":
+            screen4_data()
+        elif keuze == "4":
+            screen5_menu()
+        elif keuze == "5":
+            examples_menu()
+        elif keuze == "6" and DATABASE_AVAILABLE:
+            database_test_menu()
+        elif keuze == "0":
+            print("👋 Tot ziens!")
+            break
+        else:
+            print("❌ Ongeldige keuze")
 
 
 if __name__ == "__main__":
