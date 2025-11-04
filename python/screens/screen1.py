@@ -436,8 +436,8 @@ def race_deltas():
             sector_time = format_sector_time(player_data.sector1_time_ms, player_data.sector1_time_minutes)
             driver_name = driver_names.get(player_idx, f"Car {player_idx}")
             
-            # Toon live sector status met validatie
-            valid_icon = "🟢" if not player_data.current_lap_invalid else "🟠"
+            # ALLEEN EMOJI WIJZIGING: Groen voor valid, rood voor invalid
+            valid_icon = "🟢" if not player_data.current_lap_invalid else "🔴"
             print(f"\n{valid_icon} SECTOR 1 | {driver_name}: {sector_time}")
             
             # Sla validatie status op
@@ -453,8 +453,8 @@ def race_deltas():
             sector_time = format_sector_time(player_data.sector2_time_ms, player_data.sector2_time_minutes)
             driver_name = driver_names.get(player_idx, f"Car {player_idx}")
             
-            # Toon live sector status met validatie
-            valid_icon = "🟡" if not player_data.current_lap_invalid else "🟠"
+            # ALLEEN EMOJI WIJZIGING: Groen voor valid, rood voor invalid
+            valid_icon = "🟢" if not player_data.current_lap_invalid else "🔴"
             print(f"\n{valid_icon} SECTOR 2 | {driver_name}: {sector_time}")
             
             # Sla validatie status op
@@ -504,7 +504,8 @@ def race_deltas():
                             
                             # Sector 3 validatie - gebruik finale lap status
                             sector_data[completed_lap_key]['s3_invalid'] = player_data.current_lap_invalid
-                            valid_icon = "🔴" if not player_data.current_lap_invalid else "🟠"
+                            # ALLEEN EMOJI WIJZIGING: Groen voor valid, rood voor invalid
+                            valid_icon = "🟢" if not player_data.current_lap_invalid else "🔴"
                             print(f"\n{valid_icon} SECTOR 3 | {driver_name}: {sector3_str}")
                 
                 # Mooie tabel weergave van de voltooide ronde
@@ -524,9 +525,10 @@ def race_deltas():
                 # Bepaal individuele sector status uit opgeslagen data
                 completed_lap_data = sector_data.get(completed_lap_key, {})
                 
-                s1_status = "✗" if completed_lap_data.get('s1_invalid', False) else "✓"
-                s2_status = "✗" if completed_lap_data.get('s2_invalid', False) else "✓"  
-                s3_status = "✗" if completed_lap_data.get('s3_invalid', False) else "✓"
+                # ALLEEN EMOJI WIJZIGING: Rondjes i.p.v. ✓/✗
+                s1_status = "🔴" if completed_lap_data.get('s1_invalid', False) else "🟢"
+                s2_status = "🔴" if completed_lap_data.get('s2_invalid', False) else "🟢"  
+                s3_status = "🔴" if completed_lap_data.get('s3_invalid', False) else "🟢"
                 
                 print(f"{'Sector 1':<15} {sector1_str:<12} {cum1:<15} {s1_status:<10}")
                 print(f"{'Sector 2':<15} {sector2_str:<12} {cum2:<15} {s2_status:<10}")
@@ -537,7 +539,8 @@ def race_deltas():
                                     completed_lap_data.get('s2_invalid', False) or 
                                     completed_lap_data.get('s3_invalid', False))
                 
-                lap_status = "INVALID" if any_sector_invalid else "VALID"
+                # ALLEEN EMOJI WIJZIGING: Rondjes i.p.v. VALID/INVALID
+                lap_status = "🔴 INVALID" if any_sector_invalid else "🟢 VALID"
                 
                 print(f"{'-'*80}")
                 print(f"{'TOTAL LAP TIME':<15} {player_data.get_last_lap_time_str():<12} {'P' + str(player_data.car_position):<15} {lap_status:<10}")
