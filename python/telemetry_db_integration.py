@@ -16,7 +16,7 @@ class TelemetryDatabaseIntegration:
     Hoofdklasse voor integratie tussen telemetry en database
     """
     
-    def __init__(self, auto_save: bool = True, save_interval: float = 1.0):
+    def __init__(self, auto_save: bool = True, save_interval: float = 2.0):
         """
         Initialiseer telemetry database integratie
         
@@ -46,6 +46,9 @@ class TelemetryDatabaseIntegration:
         self._current_session_type: Optional[str] = None
         self._session_start_time: Optional[datetime] = None
         
+        # Driver namen cache
+        self._driver_names: Dict[int, str] = {}
+        
         self.logger.info(f"TelemetryDatabaseIntegration geïnitialiseerd - Auto save: {auto_save}")
     
     def set_session_info(self, track_name: str, session_type: str = "Practice"):
@@ -63,16 +66,18 @@ class TelemetryDatabaseIntegration:
         # Reset laatste opgeslagen tijden voor nieuwe sessie
         with self._save_lock:
             self._last_saved_times.clear()
+            self._driver_names.clear()
         
         self.logger.info(f"Sessie gestart - Track: {track_name}, Type: {session_type}")
     
-    def process_lap_data_packet(self, lap_packet: Any, participants_packet: Any = None) -> Dict[str, Any]:
+    def process_lap_data_packet(self, lap_packet: Any, participants_packet: Any = None, driver_names: Dict[int, str] = None) -> Dict[str, Any]:
         """
         Verwerk een lap data packet en sla nieuwe rondetijden op
         
         Args:
             lap_packet: LapDataPacket uit telemetry
             participants_packet: ParticipantsPacket voor driver namen (optioneel)
+            driver_names: Dictionary met driver namen uit screen1 (optioneel)
             
         Returns:
             Dictionary met verwerkte informatie
@@ -80,6 +85,12 @@ class TelemetryDatabaseIntegration:
         if not self._current_track:
             self.logger.warning("Geen track informatie - stel eerst sessie info in met set_session_info()")
             return {}
+        
+        # Update driver names als beschikbaar
+        if driver_names:
+            for car_index, name in driver_names.items():
+                if name and name.strip():
+                    self._driver_names[car_index] = name.strip()
         
         results = {
             'new_lap_times': [],
@@ -96,7 +107,7 @@ class TelemetryDatabaseIntegration:
                 # Krijg driver naam
                 driver_name = self._get_driver_name(car_index, participants_packet)
                 if not driver_name or driver_name == "Unknown Driver":
-                    continue
+                    driver_name = f"Driver_{car_index + 1}"
                 
                 # Check of er een nieuwe rondetijd is om op te slaan
                 if self._should_save_lap_time(driver_name, lap_data):
@@ -127,16 +138,23 @@ class TelemetryDatabaseIntegration:
             Driver naam of fallback naam
         """
         try:
+            # Eerst proberen uit cache
+            if car_index in self._driver_names:
+                return self._driver_names[car_index]
+            
+            # Dan proberen uit participants packet
             if participants_packet and hasattr(participants_packet, 'participants'):
                 if car_index < len(participants_packet.participants):
                     participant = participants_packet.participants[car_index]
                     if hasattr(participant, 'name'):
                         name = self.utils.get_driver_name_from_telemetry(participant.name)
                         if name and name != "Unknown Driver":
+                            self._driver_names[car_index] = name
                             return name
             
             # Fallback naar generieke naam
-            return f"Driver_{car_index + 1}"
+            fallback_name = f"Driver_{car_index + 1}"
+            return fallback_name
             
         except Exception as e:
             self.logger.debug(f"Fout bij ophalen driver naam voor index {car_index}: {e}")

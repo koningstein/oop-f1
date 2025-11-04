@@ -149,7 +149,11 @@ def toon_alle_data():
         
         # DATABASE INTEGRATIE - AUTOMATISCH OPSLAAN
         if DATABASE_AVAILABLE:
-            results = telemetry_db_integration.process_lap_data_packet(packet)
+            results = telemetry_db_integration.process_lap_data_packet(packet, None, driver_names)
+
+            # Debug info (kun je later weghalen)
+            if results['new_lap_times']:
+                print(f"\n💾 {len(results['new_lap_times'])} rondetijden opgeslagen!")
         
         # ORIGINELE CODE BEHOUDEN
         # Update posities en tijden
