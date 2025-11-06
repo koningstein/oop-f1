@@ -8,7 +8,10 @@ import threading
 from typing import Optional, Callable, Dict
 from config import UDP_CONFIG
 from services import logger_service
-from parsers import PacketHeader, PacketID, get_packet_name
+# from packet_parsers import PacketHeader, PacketID, get_packet_name
+from packet_parsers.packet_header import PacketHeader
+from packet_parsers.packet_types import PacketID, get_packet_name
+
 
 class UDPListener:
     """

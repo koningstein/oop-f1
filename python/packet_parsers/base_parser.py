@@ -6,8 +6,8 @@ Basis klasse voor alle packet parsers met gemeenschappelijke functionaliteit
 import struct
 from abc import ABC, abstractmethod
 from typing import Optional, Any
-from parsers.packet_header import PacketHeader
-from services import logger_service
+from .packet_header import PacketHeader
+import logging
 
 class BaseParser(ABC):
     """
@@ -17,7 +17,7 @@ class BaseParser(ABC):
     
     def __init__(self):
         """Initialiseer parser"""
-        self.logger = logger_service.get_logger(self.__class__.__name__)
+        self.logger = logging.getLogger(self.__class__.__name__)
     
     @abstractmethod
     def parse(self, header: PacketHeader, payload: bytes) -> Optional[Any]:

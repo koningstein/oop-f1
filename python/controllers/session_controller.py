@@ -6,7 +6,7 @@ Controller voor sessie lifecycle management
 from typing import Optional, Dict, Any
 from models import SessionModel, DriverModel, LapModel
 from services import logger_service
-from parsers import SessionData
+from packet_parsers import SessionData
 
 class SessionController:
     """

@@ -5,8 +5,8 @@ Parse Lap Data packet (ID 2) met rondetijden en sector informatie
 
 from dataclasses import dataclass
 from typing import Optional, List
-from parsers.base_parser import BaseParser
-from parsers.packet_header import PacketHeader
+from .base_parser import BaseParser
+from .packet_header import PacketHeader
 
 @dataclass
 class LapData:

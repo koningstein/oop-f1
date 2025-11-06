@@ -5,8 +5,8 @@ Parse Session History packet (ID 11) met lap en sector validatie
 
 from dataclasses import dataclass
 from typing import Optional, List
-from parsers.base_parser import BaseParser
-from parsers.packet_header import PacketHeader
+from .base_parser import BaseParser
+from .packet_header import PacketHeader
 
 @dataclass
 class LapHistoryData:

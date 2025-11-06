@@ -4,11 +4,11 @@ Services package voor de F1 telemetry applicatie.
 Bevat de UDP listener en logging functionaliteit.
 """
 
-from .logger_services import setup_logger, get_logger
+from .logger_services import LoggerService, logger_service
 from .udp_listener import UDPListener
 
 __all__ = [
-    'setup_logger',
-    'get_logger', 
+    'LoggerService',
+    'logger_service',
     'UDPListener'
 ]

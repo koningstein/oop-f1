@@ -5,9 +5,9 @@ Parse Session packet (ID 1) met track en weather informatie
 
 from dataclasses import dataclass
 from typing import Optional
-from parsers.base_parser import BaseParser
-from parsers.packet_header import PacketHeader
-from parsers.packet_types import SessionType, Weather
+from .base_parser import BaseParser
+from .packet_header import PacketHeader
+from .packet_types import SessionType, Weather
 
 @dataclass
 class MarshalZone:

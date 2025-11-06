@@ -2,7 +2,7 @@
 Parsers Package
 Bevat alle F1 25 packet parsers
 """
-
+print("DEBUG: packet_parsers __init__.py wordt uitgevoerd!")
 from .packet_types import (
     PacketID, SessionType, Weather, DriverStatus, 
     ResultStatus, EventCode, get_packet_name

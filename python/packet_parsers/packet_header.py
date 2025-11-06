@@ -6,7 +6,7 @@ Parse de header van elk UDP packet
 import struct
 from dataclasses import dataclass
 from typing import Optional
-from parsers.packet_types import PACKET_FORMAT_2025, GAME_YEAR
+from .packet_types import PACKET_FORMAT_2025, GAME_YEAR
 
 @dataclass
 class PacketHeader:

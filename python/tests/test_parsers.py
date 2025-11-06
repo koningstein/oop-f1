@@ -5,8 +5,8 @@ Unit tests voor packet parsers
 
 import unittest
 import struct
-from parsers import PacketHeader, PacketID
-from parsers.packet_types import PACKET_FORMAT_2025, GAME_YEAR
+from packet_parsers import PacketHeader, PacketID
+from packet_parsers.packet_types import PACKET_FORMAT_2025, GAME_YEAR
 
 class TestPacketHeader(unittest.TestCase):
     """Tests voor PacketHeader parser"""

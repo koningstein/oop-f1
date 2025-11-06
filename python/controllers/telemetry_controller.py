@@ -4,7 +4,7 @@ Hoofdcontroller voor verwerking van telemetry packets
 """
 
 from typing import Optional
-from parsers import *
+from packet_parsers import *
 from models import SessionModel, LapModel, DriverModel, TelemetryModel
 from services import logger_service
 

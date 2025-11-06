@@ -10,3 +10,10 @@ python/screens/__pycache__
 python/views/__pycache__/
 python/controllers/__pycache__/
 python/services/__pycache__/
+python/models/__pycache__/
+python/packet_parsers/__pycache__/
+python/utils/__pycache__/
+python/tests/__pycache__/
+python/views/screens/__pycache__/
+python/views/components/__pycache__/
+

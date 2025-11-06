@@ -2,3 +2,130 @@
 2025-11-06 10:33:00,035 - root - INFO - Logging service geïnitialiseerd
 2025-11-06 10:33:00,035 - root - INFO - Log bestand: D:\wampserver\www\oop-f1\python\logs\telemetry.log
 2025-11-06 10:33:00,035 - root - INFO - ============================================================
+2025-11-06 10:40:10,849 - root - INFO - ============================================================
+2025-11-06 10:40:10,849 - root - INFO - Logging service geïnitialiseerd
+2025-11-06 10:40:10,849 - root - INFO - Log bestand: D:\wampserver\www\oop-f1\python\logs\telemetry.log
+2025-11-06 10:40:10,849 - root - INFO - ============================================================
+2025-11-06 10:56:24,771 - root - INFO - ============================================================
+2025-11-06 10:56:24,771 - root - INFO - Logging service geïnitialiseerd
+2025-11-06 10:56:24,771 - root - INFO - Log bestand: D:\wampserver\www\oop-f1\python\logs\telemetry.log
+2025-11-06 10:56:24,771 - root - INFO - ============================================================
+2025-11-06 11:00:38,730 - root - INFO - ============================================================
+2025-11-06 11:00:38,730 - root - INFO - Logging service geïnitialiseerd
+2025-11-06 11:00:38,730 - root - INFO - Log bestand: D:\wampserver\www\oop-f1\python\logs\telemetry.log
+2025-11-06 11:00:38,730 - root - INFO - ============================================================
+2025-11-06 11:04:23,638 - root - INFO - ============================================================
+2025-11-06 11:04:23,638 - root - INFO - Logging service geïnitialiseerd
+2025-11-06 11:04:23,639 - root - INFO - Log bestand: D:\wampserver\www\oop-f1\python\logs\telemetry.log
+2025-11-06 11:04:23,639 - root - INFO - ============================================================
+2025-11-06 11:13:29,758 - root - INFO - ============================================================
+2025-11-06 11:13:29,758 - root - INFO - Logging service geïnitialiseerd
+2025-11-06 11:13:29,759 - root - INFO - Log bestand: D:\wampserver\www\oop-f1\python\logs\telemetry.log
+2025-11-06 11:13:29,759 - root - INFO - ============================================================
+2025-11-06 11:18:44,106 - root - INFO - ============================================================
+2025-11-06 11:18:44,107 - root - INFO - Logging service geïnitialiseerd
+2025-11-06 11:18:44,107 - root - INFO - Log bestand: D:\wampserver\www\oop-f1\python\logs\telemetry.log
+2025-11-06 11:18:44,107 - root - INFO - ============================================================
+2025-11-06 11:25:17,595 - root - INFO - ============================================================
+2025-11-06 11:25:17,595 - root - INFO - Logging service geïnitialiseerd
+2025-11-06 11:25:17,595 - root - INFO - Log bestand: D:\wampserver\www\oop-f1\python\logs\telemetry.log
+2025-11-06 11:25:17,596 - root - INFO - ============================================================
+2025-11-06 11:27:29,388 - root - INFO - ============================================================
+2025-11-06 11:27:29,389 - root - INFO - Logging service geïnitialiseerd
+2025-11-06 11:27:29,389 - root - INFO - Log bestand: D:\wampserver\www\oop-f1\python\logs\telemetry.log
+2025-11-06 11:27:29,389 - root - INFO - ============================================================
+2025-11-06 11:30:01,303 - root - INFO - ============================================================
+2025-11-06 11:30:01,303 - root - INFO - Logging service geïnitialiseerd
+2025-11-06 11:30:01,304 - root - INFO - Log bestand: D:\wampserver\www\oop-f1\python\logs\telemetry.log
+2025-11-06 11:30:01,304 - root - INFO - ============================================================
+2025-11-06 11:33:27,770 - root - INFO - ============================================================
+2025-11-06 11:33:27,770 - root - INFO - Logging service geïnitialiseerd
+2025-11-06 11:33:27,770 - root - INFO - Log bestand: D:\wampserver\www\oop-f1\python\logs\telemetry.log
+2025-11-06 11:33:27,771 - root - INFO - ============================================================
+2025-11-06 11:35:14,640 - root - INFO - ============================================================
+2025-11-06 11:35:14,640 - root - INFO - Logging service geïnitialiseerd
+2025-11-06 11:35:14,640 - root - INFO - Log bestand: D:\wampserver\www\oop-f1\python\logs\telemetry.log
+2025-11-06 11:35:14,640 - root - INFO - ============================================================
+2025-11-06 11:36:30,392 - root - INFO - ============================================================
+2025-11-06 11:36:30,392 - root - INFO - Logging service geïnitialiseerd
+2025-11-06 11:36:30,392 - root - INFO - Log bestand: D:\wampserver\www\oop-f1\python\logs\telemetry.log
+2025-11-06 11:36:30,392 - root - INFO - ============================================================
+2025-11-06 11:37:07,162 - root - INFO - ============================================================
+2025-11-06 11:37:07,163 - root - INFO - Logging service geïnitialiseerd
+2025-11-06 11:37:07,163 - root - INFO - Log bestand: D:\wampserver\www\oop-f1\python\logs\telemetry.log
+2025-11-06 11:37:07,163 - root - INFO - ============================================================
+2025-11-06 11:44:28,875 - root - INFO - ============================================================
+2025-11-06 11:44:28,875 - root - INFO - Logging service geïnitialiseerd
+2025-11-06 11:44:28,875 - root - INFO - Log bestand: D:\wampserver\www\oop-f1\python\logs\telemetry.log
+2025-11-06 11:44:28,875 - root - INFO - ============================================================
+2025-11-06 11:44:29,115 - Database - INFO - Logger 'Database' aangemaakt
+2025-11-06 11:44:29,193 - Database - INFO - Database connection pool aangemaakt
+2025-11-06 11:44:29,218 - Database - INFO - Tabel 'sessions' gecontroleerd/aangemaakt
+2025-11-06 11:44:29,239 - Database - INFO - Tabel 'drivers' gecontroleerd/aangemaakt
+2025-11-06 11:44:29,257 - Database - INFO - Tabel 'laps' gecontroleerd/aangemaakt
+2025-11-06 11:44:29,279 - Database - INFO - Tabel 'telemetry_live' gecontroleerd/aangemaakt
+2025-11-06 11:47:36,117 - root - INFO - ============================================================
+2025-11-06 11:47:36,117 - root - INFO - Logging service geïnitialiseerd
+2025-11-06 11:47:36,117 - root - INFO - Log bestand: D:\wampserver\www\oop-f1\python\logs\telemetry.log
+2025-11-06 11:47:36,117 - root - INFO - ============================================================
+2025-11-06 11:47:36,191 - Database - INFO - Logger 'Database' aangemaakt
+2025-11-06 11:47:36,305 - Database - INFO - Database connection pool aangemaakt
+2025-11-06 11:47:36,308 - Database - INFO - Tabel 'sessions' gecontroleerd/aangemaakt
+2025-11-06 11:47:36,309 - Database - INFO - Tabel 'drivers' gecontroleerd/aangemaakt
+2025-11-06 11:47:36,311 - Database - INFO - Tabel 'laps' gecontroleerd/aangemaakt
+2025-11-06 11:47:36,312 - Database - INFO - Tabel 'telemetry_live' gecontroleerd/aangemaakt
+2025-11-06 11:47:36,327 - MainApp - INFO - Logger 'MainApp' aangemaakt
+2025-11-06 11:47:36,327 - MainApp - INFO - F1 25 Telemetry System wordt gestart...
+2025-11-06 11:47:36,327 - TelemetryController - INFO - Logger 'TelemetryController' aangemaakt
+2025-11-06 11:47:36,327 - SessionModel - INFO - Logger 'SessionModel' aangemaakt
+2025-11-06 11:47:36,327 - LapModel - INFO - Logger 'LapModel' aangemaakt
+2025-11-06 11:47:36,327 - DriverModel - INFO - Logger 'DriverModel' aangemaakt
+2025-11-06 11:47:36,327 - TelemetryModel - INFO - Logger 'TelemetryModel' aangemaakt
+2025-11-06 11:47:36,328 - TelemetryController - INFO - Telemetry controller geïnitialiseerd
+2025-11-06 11:47:36,328 - MenuController - INFO - Logger 'MenuController' aangemaakt
+2025-11-06 11:47:36,328 - MenuController - INFO - Menu controller geïnitialiseerd
+2025-11-06 11:47:36,328 - UDPListener - INFO - Logger 'UDPListener' aangemaakt
+2025-11-06 11:47:36,328 - MenuView - INFO - Logger 'MenuView' aangemaakt
+2025-11-06 11:47:36,328 - Screen1 - INFO - Logger 'Screen1' aangemaakt
+2025-11-06 11:47:36,328 - Screen2 - INFO - Logger 'Screen2' aangemaakt
+2025-11-06 11:47:36,328 - Screen3 - INFO - Logger 'Screen3' aangemaakt
+2025-11-06 11:47:36,329 - Screen4 - INFO - Logger 'Screen4' aangemaakt
+2025-11-06 11:47:36,329 - Screen5 - INFO - Logger 'Screen5' aangemaakt
+2025-11-06 11:47:36,329 - Screen6 - INFO - Logger 'Screen6' aangemaakt
+2025-11-06 11:47:36,329 - MenuController - INFO - Scherm 1 geregistreerd
+2025-11-06 11:47:36,329 - MenuController - INFO - Scherm 2 geregistreerd
+2025-11-06 11:47:36,329 - MenuController - INFO - Scherm 3 geregistreerd
+2025-11-06 11:47:36,329 - MenuController - INFO - Scherm 4 geregistreerd
+2025-11-06 11:47:36,329 - MenuController - INFO - Scherm 5 geregistreerd
+2025-11-06 11:47:36,329 - MenuController - INFO - Scherm 6 geregistreerd
+2025-11-06 11:47:36,329 - UDPListener - INFO - Handler geregistreerd voor Session (ID 1)
+2025-11-06 11:47:36,329 - UDPListener - INFO - Handler geregistreerd voor Lap Data (ID 2)
+2025-11-06 11:47:36,329 - UDPListener - INFO - Handler geregistreerd voor Session History (ID 11)
+2025-11-06 11:47:36,329 - UDPListener - INFO - Handler geregistreerd voor Participants (ID 4)
+2025-11-06 11:47:36,330 - UDPListener - INFO - Handler geregistreerd voor Car Telemetry (ID 6)
+2025-11-06 11:47:36,330 - MainApp - INFO - Packet handlers geregistreerd
+2025-11-06 11:47:36,330 - MainApp - INFO - Applicatie initialisatie compleet
+2025-11-06 11:47:54,693 - MainApp - INFO - UDP listener wordt gestart...
+2025-11-06 11:47:54,693 - UDPListener - INFO - Wachten op telemetry data...
+2025-11-06 11:47:54,693 - UDPListener - INFO - UDP listener gestart op 127.0.0.1:20777
+2025-11-06 11:47:55,195 - MenuController - INFO - Menu controller gestart
+2025-11-06 11:47:55,195 - MainApp - INFO - Applicatie succesvol gestart
+2025-11-06 11:48:03,053 - MenuController - INFO - Gewisseld naar scherm 1
+2025-11-06 11:48:07,480 - MenuController - INFO - Gewisseld naar scherm 1
+2025-11-06 11:48:08,669 - MenuController - INFO - Gewisseld naar scherm 2
+2025-11-06 11:48:10,515 - MenuController - INFO - Gewisseld naar scherm 3
+2025-11-06 11:48:11,223 - MenuController - INFO - Gewisseld naar scherm 4
+2025-11-06 11:48:11,905 - MenuController - INFO - Gewisseld naar scherm 5
+2025-11-06 11:48:13,285 - MenuController - INFO - Gewisseld naar scherm 1
+2025-11-06 11:48:15,410 - MenuController - INFO - Gewisseld naar scherm 2
+2025-11-06 11:48:16,181 - MenuController - INFO - Gewisseld naar scherm 3
+2025-11-06 11:48:16,584 - MenuController - INFO - Gewisseld naar scherm 4
+2025-11-06 11:48:16,960 - MenuController - INFO - Gewisseld naar scherm 5
+2025-11-06 12:05:33,424 - MenuController - INFO - Gewisseld naar scherm 1
+2025-11-06 12:05:34,081 - MenuController - INFO - Gewisseld naar scherm 2
+2025-11-06 12:05:35,418 - MenuController - INFO - Gewisseld naar scherm 1
+2025-11-06 12:05:36,709 - MenuController - INFO - Gewisseld naar scherm 2
+2025-11-06 12:05:37,341 - MenuController - INFO - Gewisseld naar scherm 3
+2025-11-06 12:05:38,140 - MenuController - INFO - Gewisseld naar scherm 4
+2025-11-06 12:05:38,837 - MenuController - INFO - Gewisseld naar scherm 5
+2025-11-06 12:05:39,634 - MenuController - INFO - Gewisseld naar scherm 6

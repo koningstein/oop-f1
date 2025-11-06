@@ -5,8 +5,8 @@ Parse Car Telemetry packet (ID 6) met live telemetrie data
 
 from dataclasses import dataclass
 from typing import Optional, List
-from parsers.base_parser import BaseParser
-from parsers.packet_header import PacketHeader
+from .base_parser import BaseParser
+from .packet_header import PacketHeader
 
 @dataclass
 class CarTelemetryData:
