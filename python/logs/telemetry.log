@@ -129,3 +129,210 @@
 2025-11-06 12:05:38,140 - MenuController - INFO - Gewisseld naar scherm 4
 2025-11-06 12:05:38,837 - MenuController - INFO - Gewisseld naar scherm 5
 2025-11-06 12:05:39,634 - MenuController - INFO - Gewisseld naar scherm 6
+2025-11-06 15:34:26,885 - MenuController - INFO - Gewisseld naar scherm 1
+2025-11-06 15:34:29,260 - MenuController - INFO - Gewisseld naar scherm 2
+2025-11-06 15:51:51,778 - MenuController - INFO - Afsluiten gekozen
+2025-11-06 16:00:54,241 - root - INFO - ============================================================
+2025-11-06 16:00:54,241 - root - INFO - Logging service geïnitialiseerd
+2025-11-06 16:00:54,241 - root - INFO - Log bestand: D:\wampserver\www\oop-f1\python\logs\telemetry.log
+2025-11-06 16:00:54,242 - root - INFO - ============================================================
+2025-11-06 16:00:54,307 - Database - INFO - Logger 'Database' aangemaakt
+2025-11-06 16:00:54,379 - Database - INFO - Database connection pool aangemaakt
+2025-11-06 16:00:54,380 - Database - INFO - Tabel 'sessions' gecontroleerd/aangemaakt
+2025-11-06 16:00:54,381 - Database - INFO - Tabel 'drivers' gecontroleerd/aangemaakt
+2025-11-06 16:00:54,381 - Database - INFO - Tabel 'laps' gecontroleerd/aangemaakt
+2025-11-06 16:00:54,382 - Database - INFO - Tabel 'telemetry_live' gecontroleerd/aangemaakt
+2025-11-06 16:00:54,410 - MainApp - INFO - Logger 'MainApp' aangemaakt
+2025-11-06 16:00:54,410 - MainApp - INFO - F1 25 Telemetry System wordt gestart...
+2025-11-06 16:00:54,410 - TelemetryController - INFO - Logger 'TelemetryController' aangemaakt
+2025-11-06 16:00:54,410 - SessionModel - INFO - Logger 'SessionModel' aangemaakt
+2025-11-06 16:00:54,410 - LapModel - INFO - Logger 'LapModel' aangemaakt
+2025-11-06 16:00:54,410 - DriverModel - INFO - Logger 'DriverModel' aangemaakt
+2025-11-06 16:00:54,410 - TelemetryModel - INFO - Logger 'TelemetryModel' aangemaakt
+2025-11-06 16:00:54,411 - TelemetryController - INFO - Telemetry controller geïnitialiseerd
+2025-11-06 16:00:54,411 - MenuController - INFO - Logger 'MenuController' aangemaakt
+2025-11-06 16:00:54,411 - MenuController - INFO - Menu controller geïnitialiseerd
+2025-11-06 16:00:54,411 - UDPListener - INFO - Logger 'UDPListener' aangemaakt
+2025-11-06 16:00:54,411 - MenuView - INFO - Logger 'MenuView' aangemaakt
+2025-11-06 16:00:54,411 - Screen1 - INFO - Logger 'Screen1' aangemaakt
+2025-11-06 16:00:54,411 - Screen2 - INFO - Logger 'Screen2' aangemaakt
+2025-11-06 16:00:54,411 - Screen3 - INFO - Logger 'Screen3' aangemaakt
+2025-11-06 16:00:54,411 - Screen4 - INFO - Logger 'Screen4' aangemaakt
+2025-11-06 16:00:54,411 - Screen5 - INFO - Logger 'Screen5' aangemaakt
+2025-11-06 16:00:54,411 - Screen6 - INFO - Logger 'Screen6' aangemaakt
+2025-11-06 16:00:54,411 - MenuController - INFO - Hoofdscherm 1 geregistreerd
+2025-11-06 16:00:54,412 - MenuController - INFO - Hoofdscherm 2 geregistreerd
+2025-11-06 16:00:54,412 - MenuController - INFO - Hoofdscherm 3 geregistreerd
+2025-11-06 16:00:54,412 - MenuController - INFO - Hoofdscherm 4 geregistreerd
+2025-11-06 16:00:54,412 - MenuController - INFO - Hoofdscherm 5 geregistreerd
+2025-11-06 16:00:54,412 - MenuController - INFO - Hoofdscherm 6 geregistreerd
+2025-11-06 16:00:54,412 - MenuController - INFO - Submenu functie geregistreerd: Scherm 1.1 - Practice Mode
+2025-11-06 16:00:54,412 - MenuController - INFO - Submenu functie geregistreerd: Scherm 1.2 - Race Mode
+2025-11-06 16:00:54,412 - MenuController - INFO - Submenu functie geregistreerd: Scherm 3.1 - Dashboard
+2025-11-06 16:00:54,412 - MenuController - INFO - Submenu functie geregistreerd: Scherm 3.2 - Fuel & ERS Management
+2025-11-06 16:02:48,650 - root - INFO - ============================================================
+2025-11-06 16:02:48,651 - root - INFO - Logging service geïnitialiseerd
+2025-11-06 16:02:48,651 - root - INFO - Log bestand: D:\wampserver\www\oop-f1\python\logs\telemetry.log
+2025-11-06 16:02:48,651 - root - INFO - ============================================================
+2025-11-06 16:02:48,708 - Database - INFO - Logger 'Database' aangemaakt
+2025-11-06 16:02:48,764 - Database - INFO - Database connection pool aangemaakt
+2025-11-06 16:02:48,765 - Database - INFO - Tabel 'sessions' gecontroleerd/aangemaakt
+2025-11-06 16:02:48,766 - Database - INFO - Tabel 'drivers' gecontroleerd/aangemaakt
+2025-11-06 16:02:48,766 - Database - INFO - Tabel 'laps' gecontroleerd/aangemaakt
+2025-11-06 16:02:48,767 - Database - INFO - Tabel 'telemetry_live' gecontroleerd/aangemaakt
+2025-11-06 16:02:48,774 - MainApp - INFO - Logger 'MainApp' aangemaakt
+2025-11-06 16:02:48,774 - MainApp - INFO - F1 25 Telemetry System wordt gestart...
+2025-11-06 16:02:48,774 - TelemetryController - INFO - Logger 'TelemetryController' aangemaakt
+2025-11-06 16:02:48,774 - SessionModel - INFO - Logger 'SessionModel' aangemaakt
+2025-11-06 16:02:48,774 - LapModel - INFO - Logger 'LapModel' aangemaakt
+2025-11-06 16:02:48,774 - DriverModel - INFO - Logger 'DriverModel' aangemaakt
+2025-11-06 16:02:48,774 - TelemetryModel - INFO - Logger 'TelemetryModel' aangemaakt
+2025-11-06 16:02:48,774 - TelemetryController - INFO - Telemetry controller geïnitialiseerd
+2025-11-06 16:02:48,774 - MenuController - INFO - Logger 'MenuController' aangemaakt
+2025-11-06 16:02:48,775 - MenuController - INFO - Menu controller geïnitialiseerd
+2025-11-06 16:02:48,775 - UDPListener - INFO - Logger 'UDPListener' aangemaakt
+2025-11-06 16:02:48,775 - MenuView - INFO - Logger 'MenuView' aangemaakt
+2025-11-06 16:02:48,775 - Screen1 - INFO - Logger 'Screen1' aangemaakt
+2025-11-06 16:02:48,775 - Screen2 - INFO - Logger 'Screen2' aangemaakt
+2025-11-06 16:02:48,775 - Screen3 - INFO - Logger 'Screen3' aangemaakt
+2025-11-06 16:02:48,775 - Screen4 - INFO - Logger 'Screen4' aangemaakt
+2025-11-06 16:02:48,775 - Screen5 - INFO - Logger 'Screen5' aangemaakt
+2025-11-06 16:02:48,775 - Screen6 - INFO - Logger 'Screen6' aangemaakt
+2025-11-06 16:02:48,775 - MenuController - INFO - Hoofdscherm 1 geregistreerd
+2025-11-06 16:02:48,775 - MenuController - INFO - Hoofdscherm 2 geregistreerd
+2025-11-06 16:02:48,775 - MenuController - INFO - Hoofdscherm 3 geregistreerd
+2025-11-06 16:02:48,775 - MenuController - INFO - Hoofdscherm 4 geregistreerd
+2025-11-06 16:02:48,775 - MenuController - INFO - Hoofdscherm 5 geregistreerd
+2025-11-06 16:02:48,776 - MenuController - INFO - Hoofdscherm 6 geregistreerd
+2025-11-06 16:02:48,776 - MenuController - INFO - Submenu functie geregistreerd: Scherm 1.1 - Practice Mode
+2025-11-06 16:02:48,776 - MenuController - INFO - Submenu functie geregistreerd: Scherm 1.2 - Race Mode
+2025-11-06 16:02:48,776 - MenuController - INFO - Submenu functie geregistreerd: Scherm 3.1 - Dashboard
+2025-11-06 16:02:48,776 - MenuController - INFO - Submenu functie geregistreerd: Scherm 3.2 - Fuel & ERS Management
+2025-11-06 16:02:50,958 - UDPListener - INFO - Wachten op telemetry data...
+2025-11-06 16:02:50,958 - UDPListener - INFO - UDP listener gestart op 127.0.0.1:20777
+2025-11-06 16:02:51,460 - MenuController - INFO - Menu controller gestart
+2025-11-06 16:02:51,460 - MainApp - INFO - Applicatie succesvol gestart
+2025-11-06 16:02:53,901 - MenuController - INFO - Gewisseld naar scherm 1 submenu
+2025-11-06 16:02:56,429 - MenuController - INFO - Submenu geselecteerd: 1.1 - Practice Mode
+2025-11-06 16:03:03,578 - MenuController - INFO - Terug naar submenu van scherm 1
+2025-11-06 16:03:05,773 - MenuController - INFO - Submenu geselecteerd: 1.2 - Race Mode
+2025-11-06 16:03:10,030 - MenuController - INFO - Terug naar submenu van scherm 1
+2025-11-06 16:03:13,064 - MenuController - INFO - Afsluiten gekozen
+2025-11-06 16:03:13,065 - UDPListener - INFO - UDP listener wordt gestopt...
+2025-11-06 16:03:13,144 - UDPListener - INFO - UDP listener gestopt. Ontvangen: 0, Verwerkt: 0, Errors: 0
+2025-11-06 16:03:13,144 - MenuController - INFO - Menu controller gestopt
+2025-11-06 16:03:13,144 - MainApp - INFO - F1 25 Telemetry System gestopt
+2025-11-06 16:14:13,957 - root - INFO - ============================================================
+2025-11-06 16:14:13,957 - root - INFO - Logging service geïnitialiseerd
+2025-11-06 16:14:13,957 - root - INFO - Log bestand: D:\wampserver\www\oop-f1\python\logs\telemetry.log
+2025-11-06 16:14:13,957 - root - INFO - ============================================================
+2025-11-06 16:14:14,026 - Database - INFO - Logger 'Database' aangemaakt
+2025-11-06 16:14:14,092 - Database - INFO - Database connection pool aangemaakt
+2025-11-06 16:14:14,093 - Database - INFO - Tabel 'sessions' gecontroleerd/aangemaakt
+2025-11-06 16:14:14,094 - Database - INFO - Tabel 'drivers' gecontroleerd/aangemaakt
+2025-11-06 16:14:14,094 - Database - INFO - Tabel 'laps' gecontroleerd/aangemaakt
+2025-11-06 16:14:14,095 - Database - INFO - Tabel 'telemetry_live' gecontroleerd/aangemaakt
+2025-11-06 16:14:14,118 - MainApp - INFO - Logger 'MainApp' aangemaakt
+2025-11-06 16:14:14,118 - MainApp - INFO - F1 25 Telemetry System wordt gestart...
+2025-11-06 16:14:14,119 - TelemetryController - INFO - Logger 'TelemetryController' aangemaakt
+2025-11-06 16:14:14,119 - SessionModel - INFO - Logger 'SessionModel' aangemaakt
+2025-11-06 16:14:14,119 - LapModel - INFO - Logger 'LapModel' aangemaakt
+2025-11-06 16:14:14,119 - DriverModel - INFO - Logger 'DriverModel' aangemaakt
+2025-11-06 16:14:14,119 - TelemetryModel - INFO - Logger 'TelemetryModel' aangemaakt
+2025-11-06 16:14:14,119 - TelemetryController - INFO - Telemetry controller geïnitialiseerd
+2025-11-06 16:14:14,120 - MenuController - INFO - Logger 'MenuController' aangemaakt
+2025-11-06 16:14:14,120 - MenuController - INFO - Menu controller geïnitialiseerd
+2025-11-06 16:14:14,120 - UDPListener - INFO - Logger 'UDPListener' aangemaakt
+2025-11-06 16:14:14,120 - MenuView - INFO - Logger 'MenuView' aangemaakt
+2025-11-06 16:14:14,121 - Screen1 - INFO - Logger 'Screen1' aangemaakt
+2025-11-06 16:14:14,121 - Screen2 - INFO - Logger 'Screen2' aangemaakt
+2025-11-06 16:14:14,121 - Screen3 - INFO - Logger 'Screen3' aangemaakt
+2025-11-06 16:14:14,121 - Screen4 - INFO - Logger 'Screen4' aangemaakt
+2025-11-06 16:14:14,121 - Screen5 - INFO - Logger 'Screen5' aangemaakt
+2025-11-06 16:14:14,121 - Screen6 - INFO - Logger 'Screen6' aangemaakt
+2025-11-06 16:14:14,121 - MenuController - INFO - Hoofdscherm 1 geregistreerd
+2025-11-06 16:14:14,121 - MenuController - INFO - Hoofdscherm 2 geregistreerd
+2025-11-06 16:14:14,121 - MenuController - INFO - Hoofdscherm 3 geregistreerd
+2025-11-06 16:14:14,122 - MenuController - INFO - Hoofdscherm 4 geregistreerd
+2025-11-06 16:14:14,122 - MenuController - INFO - Hoofdscherm 5 geregistreerd
+2025-11-06 16:14:14,122 - MenuController - INFO - Hoofdscherm 6 geregistreerd
+2025-11-06 16:14:14,123 - MenuController - INFO - Submenu functie geregistreerd: Scherm 1.1 - Practice Mode
+2025-11-06 16:14:14,123 - MenuController - INFO - Submenu functie geregistreerd: Scherm 1.2 - Race Mode
+2025-11-06 16:14:14,123 - MenuController - INFO - Submenu functie geregistreerd: Scherm 3.1 - Dashboard
+2025-11-06 16:14:14,124 - MenuController - INFO - Submenu functie geregistreerd: Scherm 3.2 - Fuel & ERS Management
+2025-11-06 16:14:21,652 - UDPListener - INFO - Wachten op telemetry data...
+2025-11-06 16:14:21,652 - UDPListener - INFO - UDP listener gestart op 127.0.0.1:20777
+2025-11-06 16:14:22,154 - MenuController - INFO - Menu controller gestart
+2025-11-06 16:14:22,154 - MainApp - INFO - Applicatie succesvol gestart
+2025-11-06 16:14:26,765 - MenuController - INFO - Gewisseld naar scherm 1 submenu
+2025-11-06 16:14:30,996 - MenuController - INFO - Terug naar hoofdmenu
+2025-11-06 16:14:32,024 - MenuController - INFO - Gewisseld naar scherm 2 submenu
+2025-11-06 16:14:33,225 - MenuController - INFO - Terug naar hoofdmenu
+2025-11-06 16:14:34,233 - MenuController - INFO - Gewisseld naar scherm 3 submenu
+2025-11-06 16:14:35,473 - MenuController - INFO - Terug naar hoofdmenu
+2025-11-06 16:14:36,668 - MenuController - INFO - Gewisseld naar scherm 4 submenu
+2025-11-06 16:14:37,786 - MenuController - INFO - Terug naar hoofdmenu
+2025-11-06 16:14:38,985 - MenuController - INFO - Gewisseld naar scherm 5 submenu
+2025-11-06 16:14:40,088 - MenuController - INFO - Terug naar hoofdmenu
+2025-11-06 16:14:40,857 - MenuController - INFO - Gewisseld naar scherm 6 submenu
+2025-11-06 16:14:42,046 - MenuController - INFO - Terug naar hoofdmenu
+2025-11-06 16:14:49,343 - MenuController - INFO - Gewisseld naar scherm 1 submenu
+2025-11-06 16:14:57,416 - MenuController - INFO - Terug naar hoofdmenu
+2025-11-06 16:15:00,814 - MenuController - INFO - Gewisseld naar scherm 2 submenu
+2025-11-06 16:15:08,057 - MenuController - INFO - Terug naar hoofdmenu
+2025-11-06 16:15:10,231 - MenuController - INFO - Gewisseld naar scherm 3 submenu
+2025-11-06 16:15:11,459 - MenuController - INFO - Terug naar hoofdmenu
+2025-11-06 16:38:15,518 - MenuController - INFO - Afsluiten gekozen
+2025-11-06 16:38:15,518 - UDPListener - INFO - UDP listener wordt gestopt...
+2025-11-06 16:38:16,335 - UDPListener - INFO - UDP listener gestopt. Ontvangen: 0, Verwerkt: 0, Errors: 0
+2025-11-06 16:38:16,336 - MenuController - INFO - Menu controller gestopt
+2025-11-06 16:38:16,336 - MainApp - INFO - F1 25 Telemetry System gestopt
+2025-11-06 16:38:18,378 - root - INFO - ============================================================
+2025-11-06 16:38:18,378 - root - INFO - Logging service geïnitialiseerd
+2025-11-06 16:38:18,379 - root - INFO - Log bestand: D:\wampserver\www\oop-f1\python\logs\telemetry.log
+2025-11-06 16:38:18,379 - root - INFO - ============================================================
+2025-11-06 16:38:18,450 - Database - INFO - Logger 'Database' aangemaakt
+2025-11-06 16:38:18,536 - Database - INFO - Database connection pool aangemaakt
+2025-11-06 16:38:18,537 - Database - INFO - Tabel 'sessions' gecontroleerd/aangemaakt
+2025-11-06 16:38:18,538 - Database - INFO - Tabel 'drivers' gecontroleerd/aangemaakt
+2025-11-06 16:38:18,538 - Database - INFO - Tabel 'laps' gecontroleerd/aangemaakt
+2025-11-06 16:38:18,539 - Database - INFO - Tabel 'telemetry_live' gecontroleerd/aangemaakt
+2025-11-06 16:38:18,561 - MainApp - INFO - Logger 'MainApp' aangemaakt
+2025-11-06 16:38:18,561 - MainApp - INFO - F1 25 Telemetry System wordt gestart...
+2025-11-06 16:38:18,561 - TelemetryController - INFO - Logger 'TelemetryController' aangemaakt
+2025-11-06 16:38:18,562 - SessionModel - INFO - Logger 'SessionModel' aangemaakt
+2025-11-06 16:38:18,562 - LapModel - INFO - Logger 'LapModel' aangemaakt
+2025-11-06 16:38:18,562 - DriverModel - INFO - Logger 'DriverModel' aangemaakt
+2025-11-06 16:38:18,563 - TelemetryModel - INFO - Logger 'TelemetryModel' aangemaakt
+2025-11-06 16:38:18,563 - TelemetryController - INFO - Telemetry controller geïnitialiseerd
+2025-11-06 16:38:18,563 - MenuController - INFO - Logger 'MenuController' aangemaakt
+2025-11-06 16:38:18,563 - MenuController - INFO - Menu controller geïnitialiseerd
+2025-11-06 16:38:18,564 - UDPListener - INFO - Logger 'UDPListener' aangemaakt
+2025-11-06 16:38:18,564 - MenuView - INFO - Logger 'MenuView' aangemaakt
+2025-11-06 16:38:18,564 - Screen1 - INFO - Logger 'Screen1' aangemaakt
+2025-11-06 16:38:18,565 - Screen2 - INFO - Logger 'Screen2' aangemaakt
+2025-11-06 16:38:18,565 - Screen3 - INFO - Logger 'Screen3' aangemaakt
+2025-11-06 16:38:18,566 - Screen4 - INFO - Logger 'Screen4' aangemaakt
+2025-11-06 16:38:18,566 - Screen5 - INFO - Logger 'Screen5' aangemaakt
+2025-11-06 16:38:18,566 - Screen6 - INFO - Logger 'Screen6' aangemaakt
+2025-11-06 16:38:18,566 - MenuController - INFO - Hoofdscherm 1 geregistreerd
+2025-11-06 16:38:18,566 - MenuController - INFO - Hoofdscherm 2 geregistreerd
+2025-11-06 16:38:18,567 - MenuController - INFO - Hoofdscherm 3 geregistreerd
+2025-11-06 16:38:18,567 - MenuController - INFO - Hoofdscherm 4 geregistreerd
+2025-11-06 16:38:18,567 - MenuController - INFO - Hoofdscherm 5 geregistreerd
+2025-11-06 16:38:18,567 - MenuController - INFO - Hoofdscherm 6 geregistreerd
+2025-11-06 16:38:18,568 - MenuController - INFO - Submenu functie geregistreerd: Scherm 1.1 - Practice Mode
+2025-11-06 16:38:18,568 - MenuController - INFO - Submenu functie geregistreerd: Scherm 1.2 - Race Mode
+2025-11-06 16:38:18,568 - MenuController - INFO - Submenu functie geregistreerd: Scherm 3.1 - Dashboard
+2025-11-06 16:38:18,568 - MenuController - INFO - Submenu functie geregistreerd: Scherm 3.2 - Fuel & ERS Management
+2025-11-06 16:38:19,825 - UDPListener - INFO - Wachten op telemetry data...
+2025-11-06 16:38:19,825 - UDPListener - INFO - UDP listener gestart op 127.0.0.1:20777
+2025-11-06 16:38:20,326 - MenuController - INFO - Menu controller gestart
+2025-11-06 16:38:20,327 - MainApp - INFO - Applicatie succesvol gestart
+2025-11-06 16:38:22,206 - MenuController - INFO - Gewisseld naar scherm 1 submenu
+2025-11-06 16:38:24,925 - MenuController - INFO - Terug naar hoofdmenu
+2025-11-06 16:38:26,040 - MenuController - INFO - Afsluiten gekozen
+2025-11-06 16:38:26,040 - UDPListener - INFO - UDP listener wordt gestopt...
+2025-11-06 16:38:26,889 - UDPListener - INFO - UDP listener gestopt. Ontvangen: 0, Verwerkt: 0, Errors: 0
+2025-11-06 16:38:26,889 - MenuController - INFO - Menu controller gestopt
+2025-11-06 16:38:26,889 - MainApp - INFO - F1 25 Telemetry System gestopt
