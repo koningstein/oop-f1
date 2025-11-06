@@ -1,16 +1,13 @@
-# Database packages
-mysql-connector-python>=8.0.0
-PyMySQL>=1.0.0
+# F1 25 Telemetry System - Requirements
+# Python 3.8+
 
-# Environment variabelen
-python-dotenv>=1.0.0
+# Database
+mysql-connector-python==8.2.0
 
-# Datum/tijd handling  
-python-dateutil>=2.8.0
-
-# Logging
-colorlog>=6.0.0
-
-# Data handling (optioneel - alleen als je het echt nodig hebt)
-# pandas>=2.0.0  # Uitgecommentarieerd vanwege Windows compiler problemen
-# numpy>=1.24.0  # Uitgecommentarieerd vanwege Windows compiler problemen
+# Geen extra dependencies nodig!
+# Het systeem gebruikt alleen Python standard library voor de rest:
+# - socket (UDP listener)
+# - struct (binary data parsing)
+# - threading (UDP listener in background)
+# - dataclasses (data structures)
+# - logging (logging systeem)
