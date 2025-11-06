@@ -8,7 +8,7 @@ Start alle componenten en runt de main loop
 
 import sys
 import time
-from services import logger_service, UDPListener
+from services import setup_logger, get_logger, UDPListener
 from controllers import TelemetryController, MenuController
 from views import MenuView, Screen1Overview, Screen2Timing, Screen3Telemetry
 from views import Screen4Standings, Screen5Comparison, Screen6History

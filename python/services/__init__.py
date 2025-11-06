@@ -1,10 +1,14 @@
+# services/__init__.py
 """
-Services Package
-Bevat alle service klassen voor logging, UDP, validatie etc.
+Services package voor de F1 telemetry applicatie.
+Bevat de UDP listener en logging functionaliteit.
 """
 
-from .logger_service import logger_service, LoggerService
+from .logger_services import setup_logger, get_logger
 from .udp_listener import UDPListener
-from .data_validator import data_validator, DataValidator
 
-__all__ = ['logger_service', 'LoggerService', 'UDPListener', 'data_validator', 'DataValidator']
+__all__ = [
+    'setup_logger',
+    'get_logger', 
+    'UDPListener'
+]
