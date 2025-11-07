@@ -210,29 +210,40 @@ class F1TelemetryApp:
                     # Wacht kort en refresh
                     time.sleep(2.0)
                     
-                    # Check voor input met timeout (niet geïmplementeerd in basic versie)
+                    # TODO: Check voor 'R' input met een timeout (non-blocking)
+                    # Voor nu: ga door met de loop
                     continue
                 
                 # Haal gebruiker input op
                 choice = self.menu_view.get_user_input()
+
+                # --- AANGEPASTE VOLGORDE ---
+                # 1. Verwerk EERST de speciale 'R' command
+                if choice.upper() == 'R':
+                    auto_refresh = not auto_refresh
+                    status = "aan" if auto_refresh else "uit"
+                    self.logger.info(f"Auto-refresh {status} gezet")
+                    print(f"\n[INFO] Auto-refresh {status}")
+                    time.sleep(1) # Geef gebruiker tijd om te lezen
+                    continue # Start de loop opnieuw (rendert scherm)
                 
-                # Verwerk input met nieuwe submenu logica
+                # 2. Verwerk daarna de menu input (0, B, 1-6, etc.)
                 continue_running = self.menu_controller.handle_input(choice)
                 
                 if not continue_running:
                     self.running = False
                     break
+                # --- EINDE AANPASSING ---
                 
-                # Special commands
-                if choice.upper() == 'R':
-                    auto_refresh = not auto_refresh
-                    status = "aan" if auto_refresh else "uit"
-                    print(f"Auto-refresh {status}")
-                    time.sleep(1)
-                
-                # Kleine pause voor submenu functies
-                if not self.menu_controller.is_in_submenu_mode() and self.menu_controller.get_current_submenu() is not None:
-                    print("\nDruk ENTER om door te gaan...")
+                # Kleine pause voor demo functies (niet live views)
+                # Sla de input() over als we net 1.5 (live view) hebben geselecteerd
+                is_live_view = (self.menu_controller.get_current_screen() == 1 and
+                                self.menu_controller.get_current_submenu() == 5)
+
+                if not auto_refresh and not self.menu_controller.is_in_submenu_mode() and \
+                   self.menu_controller.get_current_submenu() is not None and not is_live_view:
+                    
+                    print("\nDemo functie (niet-live). Druk ENTER om door te gaan...")
                     input()
                 
             except KeyboardInterrupt:

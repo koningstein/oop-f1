@@ -1,20 +1,19 @@
 """
 F1 25 Telemetry System - View voor Scherm 1.5: Live Timing
 Toont live ronde- en sectortijden met validatie.
+(Versie 2: Met auto-refresh fix en live tijd)
 """
+import os
 from controllers import TelemetryController
 
 # --- GECORRIGEERDE IMPORT ---
-# Importeer de 'LapData' dataclass
 try:
-    # Aanname: je 'oud2/lap_packets.py' heet nu 'packet_parsers/lap_parser.py'
     from packet_parsers.lap_parser import LapData
 except ImportError:
     print("[Waarschuwing] Kon LapData structuur niet importeren. Scherm 1.5 zal falen.")
     class LapData: pass
 
 # Validatie bits (0 = valid, 1 = invalid)
-# Deze komen uit de F1 25 spec voor 'm_currentLapInvalid'
 LAP_VALID = 0b00000001
 SECTOR_1_VALID = 0b00000010
 SECTOR_2_VALID = 0b00000100
@@ -43,15 +42,22 @@ class LiveTimingView:
     def _get_validation_icon(self, flags: int, bit_flag: int) -> str:
         """
         Helper: Check een specifieke validatie bit flag.
-        De F1 25 spec zegt: 0 = valid, 1 = invalid.
+        Spec: 0 = valid, 1 = invalid.
         """
         is_invalid = (flags & bit_flag) > 0
         return self.INVALID_ICON if is_invalid else self.VALID_ICON
+
+    def clear_screen(self):
+        """Clear console scherm"""
+        os.system('cls' if os.name == 'nt' else 'clear')
 
     def render(self):
         """
         Render de live timing data.
         """
+        
+        # --- STAP 1: WIS HET SCHERM (Noodzakelijk voor auto-refresh) ---
+        self.clear_screen()
         
         # Haal de data op bij de controller (is thread-safe)
         player_lap_data = self.controller.get_player_lap_data()
@@ -59,13 +65,18 @@ class LiveTimingView:
         if not player_lap_data:
             print("\n  Wachten op F1 25 Lap Data (Packet 2)...")
             print("  Zorg dat je een ronde rijdt in de game.")
+            print("\n  (Druk 'R' als het scherm niet automatisch ververst)")
             return
 
         try:
-            # --- Attribuutnamen gebaseerd op 'oud2/lap_packets.py' ---
+            # --- Attribuutnamen gebaseerd op 'lap_parser.py' ---
             s1_time = player_lap_data.sector1_time_ms
             s2_time = player_lap_data.sector2_time_ms
             lap_time = player_lap_data.last_lap_time_ms
+            
+            # --- STAP 2: LIVE RONDE TIJD TOEGEVOEGD ---
+            current_time = player_lap_data.current_lap_time_ms
+            
             flags = player_lap_data.current_lap_invalid
             
         except AttributeError as e:
@@ -88,6 +99,9 @@ class LiveTimingView:
 
         # Print de data
         print("  LIVE SECTOR & LAP TIJDEN (Speler)")
+        print("  " + "-"*40)
+        # --- STAP 2 (vervolg): Live tijd hier getoond ---
+        print(f"  HUIDIGE RONDE: {self._format_time_ms(current_time)}")
         print("  " + "-"*40)
         print(f"  Sector 1:    {self._format_time_ms(s1_time)} {s1_icon}")
         print(f"  Sector 2:    {self._format_time_ms(s2_time)} {s2_icon}")

@@ -80,7 +80,9 @@ class MenuView:
         if self.menu_controller.is_in_submenu_mode():
             prompt = f"Kies submenu optie voor scherm {self.menu_controller.get_current_screen()}: "
         elif self.menu_controller.get_current_submenu() is not None:
-            prompt = "Actie (B=terug, 0=quit): "
+            # --- HIER AANPASSEN ---
+            prompt = "Actie (R=refresh, B=terug, 0=quit): "
+            # --- EINDE AANPASSING ---
         else:
             prompt = "Kies een optie: "
         
