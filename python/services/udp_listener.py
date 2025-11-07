@@ -1,175 +1,120 @@
 """
-F1 25 Telemetry System - UDP Listener
-Service voor ontvangen en routeren van UDP telemetry packets
+F1 25 Telemetry System - UDP Listener Service
+Luistert naar UDP pakketten van F1 25
 """
 
 import socket
 import threading
-from typing import Optional, Callable, Dict
-from config import UDP_CONFIG
+from typing import Callable, Dict, Any, Optional
 from services import logger_service
-# from packet_parsers import PacketHeader, PacketID, get_packet_name
-from packet_parsers.packet_header import PacketHeader
-from packet_parsers.packet_types import PacketID, get_packet_name
+# Importeer de CONFIG dictionary uit config.py
+try:
+    from config import UDP_CONFIG
+except ImportError:
+    # Fallback als config.py niet gevonden kan worden
+    print("[FATAL ERROR] config.py niet gevonden of UDP_CONFIG mist.")
+    # Standaardwaarden om crashen te voorkomen (maar zal wss niet werken)
+    UDP_CONFIG = {'host': '0.0.0.0', 'port': 20777, 'buffer_size': 2048, 'timeout': 1.0}
 
 
 class UDPListener:
-    """
-    UDP Listener voor F1 25 telemetry packets
-    Ontvangt packets en roept geregistreerde handlers aan
-    """
+    """Luistert naar UDP pakketten op een aparte thread"""
     
-    def __init__(self):
-        """Initialiseer UDP listener"""
-        self.logger = logger_service.get_logger('UDPListener')
-        self.host = UDP_CONFIG['host']
-        self.port = UDP_CONFIG['port']
-        self.buffer_size = UDP_CONFIG['buffer_size']
+    def __init__(self, packet_handler: Callable[[bytes], None]):
+        """
+        Initialiseer UDP listener
         
-        self.socket: Optional[socket.socket] = None
+        Args:
+            packet_handler: Een callback functie die de rauwe bytes
+                            van een pakket als argument accepteert.
+        """
+        self.logger = logger_service.get_logger('UDPListener')
+        
+        # Gebruik de UDP_CONFIG dictionary
+        self.host = UDP_CONFIG.get('host', '0.0.0.0')
+        self.port = UDP_CONFIG.get('port', 20777)
+        self.buffer_size = UDP_CONFIG.get('buffer_size', 2048)
+        self.timeout = UDP_CONFIG.get('timeout', 1.0)
+        
+        self.sock: Optional[socket.socket] = None
         self.running = False
         self.thread: Optional[threading.Thread] = None
         
-        # Handlers: {PacketID: callback_function}
-        self.handlers: Dict[int, Callable] = {}
+        # De handler die de rauwe data gaat verwerken
+        self.packet_handler = packet_handler 
         
-        # Statistieken
+        # Stats
         self.packets_received = 0
         self.packets_processed = 0
         self.packets_errors = 0
-        self.last_packet_time = 0
-    
-    def register_handler(self, packet_id: PacketID, handler: Callable):
-        """
-        Registreer handler functie voor specifiek packet type
-        
-        Args:
-            packet_id: PacketID enum waarde
-            handler: Callback functie die aangeroepen wordt
-        """
-        self.handlers[packet_id] = handler
-        self.logger.info(
-            f"Handler geregistreerd voor {get_packet_name(packet_id)} (ID {packet_id})"
-        )
-    
-    def unregister_handler(self, packet_id: PacketID):
-        """Verwijder handler voor packet type"""
-        if packet_id in self.handlers:
-            del self.handlers[packet_id]
-            self.logger.info(f"Handler verwijderd voor packet ID {packet_id}")
-    
+
     def start(self):
-        """Start UDP listener in aparte thread"""
+        """Start de listener thread"""
         if self.running:
-            self.logger.warning("UDP listener draait al")
+            self.logger.warning("UDP listener is al gestart")
             return
         
         try:
-            # Maak UDP socket
-            self.socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-            self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-            self.socket.bind((self.host, self.port))
-            self.socket.settimeout(UDP_CONFIG['timeout'])
-            
-            self.running = True
-            
-            # Start listener thread
-            self.thread = threading.Thread(target=self._listen_loop, daemon=True)
-            self.thread.start()
-            
+            self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+            # SO_REUSEADDR is goed gebruik in je originele bestand
+            self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+            self.sock.bind((self.host, self.port))
+            self.sock.settimeout(self.timeout)  # Gebruik timeout uit config
             self.logger.info(f"UDP listener gestart op {self.host}:{self.port}")
-            
-        except Exception as e:
-            self.logger.error(f"Fout bij starten UDP listener: {e}")
+        except OSError as e:
+            self.logger.error(f"Kon socket niet binden op {self.host}:{self.port}: {e}")
             self.running = False
-            raise
-    
+            # Gooi de exceptie opnieuw op zodat F1TelemetryApp deze kan vangen
+            raise 
+        
+        self.running = True
+        self.thread = threading.Thread(target=self.run, daemon=True)
+        self.thread.start()
+
     def stop(self):
-        """Stop UDP listener"""
-        if not self.running:
-            return
-        
-        self.logger.info("UDP listener wordt gestopt...")
+        """Stop de listener thread"""
         self.running = False
-        
-        # Wacht op thread
-        if self.thread and self.thread.is_alive():
+        if self.thread:
             self.thread.join(timeout=2.0)
+            self.logger.info("UDP listener thread gestopt")
         
-        # Sluit socket
-        if self.socket:
-            self.socket.close()
-            self.socket = None
-        
-        self.logger.info(
-            f"UDP listener gestopt. "
-            f"Ontvangen: {self.packets_received}, "
-            f"Verwerkt: {self.packets_processed}, "
-            f"Errors: {self.packets_errors}"
-        )
-    
-    def _listen_loop(self):
-        """Hoofd listener loop (draait in aparte thread)"""
-        self.logger.info("Wachten op telemetry data...")
-        
+        if self.sock:
+            self.sock.close()
+            self.sock = None
+            self.logger.info("Socket gesloten")
+
+    def run(self):
+        """Hoofd loop voor de listener thread"""
         while self.running:
             try:
-                # Ontvang UDP packet
-                data, addr = self.socket.recvfrom(self.buffer_size)
+                # Wacht op data
+                data, addr = self.sock.recvfrom(self.buffer_size)
                 self.packets_received += 1
                 
-                # Parse header
-                header = PacketHeader.from_bytes(data)
-                if not header:
-                    self.packets_errors += 1
-                    self.logger.warning("Ongeldige packet header")
-                    continue
-                
-                # Valideer header
-                if not header.is_valid():
-                    self.packets_errors += 1
-                    self.logger.warning(f"Header validatie gefaald: {header}")
-                    continue
-                
-                # Update stats
-                self.last_packet_time = header.session_time
-                
-                # Roep handler aan als geregistreerd
-                if header.packet_id in self.handlers:
-                    try:
-                        payload = header.get_payload(data)
-                        self.handlers[header.packet_id](header, payload)
-                        self.packets_processed += 1
-                    except Exception as e:
-                        self.packets_errors += 1
-                        self.logger.error(
-                            f"Handler error voor {get_packet_name(header.packet_id)}: {e}"
-                        )
-                
+                if data:
+                    # Stuur rauwe data naar de packet handler (DataProcessor)
+                    self.packet_handler(data)
+                    self.packets_processed += 1
+                    
             except socket.timeout:
-                # Timeout is normaal, ga door
+                # Geen data ontvangen, check of we nog moeten runnen
                 continue
             except Exception as e:
-                if self.running:  # Alleen loggen als we nog draaien
+                if self.running:
+                    self.logger.error(f"Fout in listener loop: {e}", exc_info=True)
                     self.packets_errors += 1
-                    self.logger.error(f"Fout in listener loop: {e}")
-    
-    def get_stats(self) -> dict:
-        """
-        Verkrijg statistieken van de listener
         
-        Returns:
-            Dict met statistieken
-        """
-        return {
-            'running': self.running,
-            'packets_received': self.packets_received,
-            'packets_processed': self.packets_processed,
-            'packets_errors': self.packets_errors,
-            'last_packet_time': self.last_packet_time,
-            'registered_handlers': len(self.handlers)
-        }
-    
+        self.logger.info("UDP listener run loop gestopt")
+
     def is_running(self) -> bool:
-        """Check of listener actief is"""
+        """Check of de listener actief is"""
         return self.running
+
+    def get_stats(self) -> Dict[str, Any]:
+        """Verkrijg statistieken"""
+        return {
+            "running": self.running,
+            "packets_received": self.packets_received,
+            "packets_processed": self.packets_processed,
+            "packets_errors": self.packets_errors,
+        }

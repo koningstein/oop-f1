@@ -9,9 +9,14 @@ Start alle componenten en runt de main loop
 import sys
 import time
 from services import logger_service, UDPListener
-from controllers import TelemetryController, MenuController
+# DataProcessor is nu toegevoegd
+from controllers import TelemetryController, MenuController, DataProcessor 
 from views import MenuView, Screen1Overview, Screen2Timing, Screen3Telemetry
 from views import Screen4Standings, Screen5Comparison, Screen6History
+
+# Importeer de nieuwe, specifieke view voor Scherm 1.5
+from views.screen1_features.live_timing_view import LiveTimingView
+
 from packet_parsers import PacketID
 
 class F1TelemetryApp:
@@ -22,12 +27,23 @@ class F1TelemetryApp:
         self.logger = logger_service.get_logger('MainApp')
         self.logger.info("F1 25 Telemetry System wordt gestart...")
         
-        # Controllers
+        # --- MVC BEDRADING (Cruciale volgorde) ---
+        
+        # 1. Initialiseer de Controllers die data opslaan
         self.telemetry_controller = TelemetryController()
         self.menu_controller = MenuController()
         
-        # UDP Listener
-        self.udp_listener = UDPListener()
+        # 2. Initialiseer de DataProcessor en geef de controllers mee
+        #    (We gaan ervan uit dat data_processor.py bestaat in 'controllers')
+        self.data_processor = DataProcessor(self.telemetry_controller)
+        
+        # 3. Initialiseer de UDP Listener en geef de process_packet
+        #    methode van de DataProcessor als callback mee.
+        self.udp_listener = UDPListener(
+            packet_handler=self.data_processor.process_packet
+        )
+        
+        # --- Einde Bedrading ---
         
         # Views
         self.menu_view = MenuView(self.menu_controller)
@@ -39,6 +55,9 @@ class F1TelemetryApp:
         self.screen4 = Screen4Standings(self.telemetry_controller)
         self.screen5 = Screen5Comparison(self.telemetry_controller)
         self.screen6 = Screen6History(self.telemetry_controller)
+        
+        # Initialiseer de specifieke view voor 1.5
+        self.live_timing_view = LiveTimingView(self.telemetry_controller)
         
         # Registreer schermen bij menu controller
         self.menu_controller.register_screen(1, self.screen1.render)
@@ -58,6 +77,9 @@ class F1TelemetryApp:
         # Scherm 1 functies
         self.menu_controller.register_submenu_function(1, 1, self.demo_practice_mode)
         self.menu_controller.register_submenu_function(1, 2, self.demo_race_mode)
+        
+        # Koppel 1.5 aan de render() methode van de nieuwe view
+        self.menu_controller.register_submenu_function(1, 5, self.live_timing_view.render)
         
         # Scherm 3 functies  
         self.menu_controller.register_submenu_function(3, 1, self.demo_dashboard)

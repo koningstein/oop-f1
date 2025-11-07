@@ -34,7 +34,8 @@ class MenuController:
                 1: ("Practice Mode", None),
                 2: ("Race Mode", None), 
                 3: ("Toernooi", None),
-                4: ("Position Chart", None)
+                4: ("Position Chart", None),
+                5: ("Live Lap & Sector Times", None)  # <-- TOEGEVOEGD
             },
             2: {  # Invoerscherm + Toernooi Beheer
                 1: ("Student Registratie", None),
@@ -241,7 +242,7 @@ class MenuController:
         menu += "="*80 + "\n"
         
         screen_info = [
-            (1, "Overzicht / Leaderboard / Toernooi", 4),
+            (1, "Overzicht / Leaderboard / Toernooi", 5), # <-- AANGEPAST (was 4)
             (2, "Invoerscherm + Toernooi Beheer", 4),
             (3, "Realtime Data Auto 1", 6),
             (4, "Realtime Data Auto 2", 7),
