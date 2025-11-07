@@ -7,9 +7,10 @@ from typing import Optional
 from services import logger_service
 
 # --- GECORRIGEERDE IMPORT ---
-# We importeren nu de 'LapData' structuur (niet het hele pakket)
+# Importeer de 'LapData' dataclass
 try:
-    from packet_parsers.packet_types import LapData
+    # Aanname: je 'oud2/lap_packets.py' heet nu 'packet_parsers/lap_parser.py'
+    from packet_parsers.lap_parser import LapData
 except ImportError:
     print("[ERROR] Kon LapData structuur niet importeren. Functionaliteit 1.5 zal falen.")
     class LapData:
@@ -79,28 +80,20 @@ class TelemetryController:
         with self._lock:
             return self.player_lap_data
 
-    # --- METHODE VOOR SCHERM 1 (Fix voor 'get_active_session_id') ---
+    # --- METHODE VOOR SCHERM 1 ---
     
     def get_current_session_id(self) -> Optional[int]:
         """
         Haalt het ID van de huidige actieve sessie op.
-        (Aanname: delegeert naar SessionModel)
+        (Placeholder)
         """
-        try:
-            # --- AANGENOMEN METHODE ---
-            # We proberen nu een andere methode, gebaseerd op je modelnaam
-            # Pas 'get_current_session' aan als deze methode anders heet
-            current_session = self.session_model.get_current_session()
-            if current_session:
-                # Aanname: de sessie heeft een 'id' attribuut
-                return current_session.id
-            return None
-        except AttributeError as e:
-            # Vangt de fout af als de methode niet bestaat
-            self.logger.error(f"Fout bij ophalen session_id: {e}")
-            return None
-        except Exception as e:
-            self.logger.error(f"Onverwachte fout bij ophalen session_id: {e}")
-            return None
+        # Log de waarschuwing (dit voorkomt de crash van vorig log)
+        if not hasattr(self, '_session_id_warning_logged'):
+            self.logger.warning("TelemetryController.get_current_session_id aangeroepen (placeholder).")
+            self.logger.warning("Screen1Overview.py moet worden bijgewerkt.")
+            self._session_id_warning_logged = True # Log maar één keer
+        
+        # Return None om crashes te voorkomen
+        return None
 
     # ... (Hier komen je andere controller-methodes) ...

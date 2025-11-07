@@ -5,14 +5,16 @@ Toont live ronde- en sectortijden met validatie.
 from controllers import TelemetryController
 
 # --- GECORRIGEERDE IMPORT ---
-# Importeer de 'LapData' structuur (de data, niet het hele pakket)
+# Importeer de 'LapData' dataclass
 try:
-    from packet_parsers.packet_types import LapData
+    # Aanname: je 'oud2/lap_packets.py' heet nu 'packet_parsers/lap_parser.py'
+    from packet_parsers.lap_parser import LapData
 except ImportError:
     print("[Waarschuwing] Kon LapData structuur niet importeren. Scherm 1.5 zal falen.")
     class LapData: pass
 
 # Validatie bits (0 = valid, 1 = invalid)
+# Deze komen uit de F1 25 spec voor 'm_currentLapInvalid'
 LAP_VALID = 0b00000001
 SECTOR_1_VALID = 0b00000010
 SECTOR_2_VALID = 0b00000100
@@ -39,7 +41,10 @@ class LiveTimingView:
         return f"{minutes}:{seconds:02d}.{milliseconds:03d}"
 
     def _get_validation_icon(self, flags: int, bit_flag: int) -> str:
-        """Helper: Check een specifieke validatie bit flag."""
+        """
+        Helper: Check een specifieke validatie bit flag.
+        De F1 25 spec zegt: 0 = valid, 1 = invalid.
+        """
         is_invalid = (flags & bit_flag) > 0
         return self.INVALID_ICON if is_invalid else self.VALID_ICON
 
@@ -57,14 +62,15 @@ class LiveTimingView:
             return
 
         try:
-            # Haal data op (Aanname van attribuutnamen uit F1 25 spec)
-            s1_time = player_lap_data.m_sector1TimeInMS
-            s2_time = player_lap_data.m_sector2TimeInMS
-            lap_time = player_lap_data.m_lastLapTimeInMS
-            flags = player_lap_data.m_lapValidBitFlags
-        except AttributeError:
-            print("\n  [FOUT] Data structuur (LapData) komt niet overeen.")
-            print("  Controleer 'packet_parsers.packet_types.py'.")
+            # --- Attribuutnamen gebaseerd op 'oud2/lap_packets.py' ---
+            s1_time = player_lap_data.sector1_time_ms
+            s2_time = player_lap_data.sector2_time_ms
+            lap_time = player_lap_data.last_lap_time_ms
+            flags = player_lap_data.current_lap_invalid
+            
+        except AttributeError as e:
+            print(f"\n  [FOUT] Data structuur (LapData) komt niet overeen: {e}")
+            print("  Controleer de attributen in 'lap_parser.py'.")
             return
         except Exception as e:
             print(f"\n  [FOUT] Onverwachte datafout: {e}")
@@ -75,10 +81,10 @@ class LiveTimingView:
         if s1_time > 0 and s2_time > 0:
             s1_s2_time = s1_time + s2_time
 
-        # Haal validatie iconen op
+        # Check de bits van 'current_lap_invalid'
+        lap_icon = self._get_validation_icon(flags, LAP_VALID)
         s1_icon = self._get_validation_icon(flags, SECTOR_1_VALID)
         s2_icon = self._get_validation_icon(flags, SECTOR_2_VALID)
-        lap_icon = self._get_validation_icon(flags, LAP_VALID)
 
         # Print de data
         print("  LIVE SECTOR & LAP TIJDEN (Speler)")
