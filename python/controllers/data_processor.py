@@ -13,7 +13,7 @@ try:
     from packet_parsers.packet_types import PacketID, MAX_CARS
     
     # Aanname: 'oud2/lap_packets.py' heet nu 'packet_parsers/lap_parser.py'
-    from packet_parsers.lap_parser import LapDataPacket, LapData, LapDataParser
+    from packet_parsers.lap_parser import LapDataPacket, LapData
     
 except ImportError as e:
     print(f"[FATAL ERROR] DataProcessor kon packet parsers niet importeren: {e}")
@@ -40,7 +40,6 @@ class DataProcessor:
         """
         self.logger = logger_service.get_logger('DataProcessor')
         self.telemetry_controller = telemetry_controller
-        self.lap_data_parser = LapDataParser()
         self.logger.info("Data Processor geïnitialiseerd")
 
     def process_packet(self, data: bytes):
@@ -76,7 +75,6 @@ class DataProcessor:
         except ImportError:
             self.logger.error("Kan pakket niet verwerken door importfout in parsers.")
         except AttributeError as e:
-            selfLAG FOUT OPSPOREN
             self.logger.error(f"Fout bij parsen (verkeerde parser structuur?): {e}", exc_info=True)
         except Exception as e:
             packet_id_str = header.packet_id if header else 'N/A'
@@ -87,15 +85,36 @@ class DataProcessor:
         Verwerk het volledige Lap Data pakket (Packet 2).
         """
         
-        packet = self.lap_data_parser.parse(header, data)
+        # Bepaal de offset *na* de 22 auto-structuren.
+        # (Gebaseerd op 'oud2/lap_packets.py')
+        fmt_lapdata_auto = '<IIHBHBHBHBfffBBBBBBBBBBBBBBBHHB'
+        size_lapdata_auto = struct.calcsize(fmt_lapdata_auto)
+        offset = 29 + (MAX_CARS * size_lapdata_auto)
+        
+        # Parse de time trial data
+        time_trial_pb_car_idx = 255
+        time_trial_rival_car_idx = 255
+        
+        if offset + 2 <= len(data):
+            time_trial_pb_car_idx = struct.unpack('<B', data[offset:offset+1])[0]
+            offset += 1
+            time_trial_rival_car_idx = struct.unpack('<B', data[offset:offset+1])[0]
+
+        # Roep de constructor aan MET de extra argumenten
+        packet = LapDataPacket(header, data, time_trial_pb_car_idx, time_trial_rival_car_idx)
         
         if not packet:
             self.logger.warning("Kon LapDataPacket niet parsen.")
             return
             
+        # --- DE ECHTE FIX ---
+        # We roepen niet packet.get_player_lap_data() aan,
+        # maar doen de logica hier, gebaseerd op 'oud2/lap_packets.py'.
+        
         player_index = header.player_car_index
         
         if 0 <= player_index < 22:
+            # Aanname: de parser vult een 'lap_data' lijst, net als in 'oud2'
             player_lap_data = packet.lap_data[player_index]
             
             # Stuur deze specifieke data (LapData struct) naar de Telemetry Controller
