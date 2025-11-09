@@ -1,6 +1,6 @@
 """
 F1 25 Telemetry System - View voor Scherm 1.5: Live Timing
-(Versie 6: Correctie voor 'align' TypeError)
+(Versie 8: Correcte lapnummer weergave)
 """
 import os
 from controllers import TelemetryController
@@ -14,17 +14,11 @@ except ImportError:
     print("[Waarschuwing] Kon LapData structuur niet importeren. Scherm 1.5 zal falen.")
     class LapData: pass
 
-# Validatie bits (0 = valid, 1 = invalid)
 LAP_VALID = 0b00000001
 SECTOR_1_VALID = 0b00000010
 SECTOR_2_VALID = 0b00000100
 
 class LiveTimingView:
-    """
-    Rendert de live timing data voor Scherm 1.5.
-    Toont nu live tijd + een historietabel van voltooide ronden.
-    """
-
     def __init__(self, telemetry_controller: TelemetryController):
         self.controller = telemetry_controller
         self.logger = logger_service.get_logger('LiveTimingView')
@@ -33,24 +27,18 @@ class LiveTimingView:
         self.INVALID_ICON = "❌"
 
     def _get_validation_icon(self, flags: int, bit_flag: int) -> str:
-        """Helper: Check een validatie bit. 0 = valid, 1 = invalid."""
         is_invalid = (flags & bit_flag) > 0
         return self.INVALID_ICON if is_invalid else self.VALID_ICON
 
     def clear_screen(self):
-        """Clear console scherm"""
         os.system('cls' if os.name == 'nt' else 'clear')
 
     def render(self):
-        """
-        Render de live timing data (huidige tijd + historie).
-        """
         self.clear_screen()
 
         # --- Deel 1: Toon de LIVE Huidige Ronde Tijd ---
         live_data = self.controller.get_player_lap_data()
         current_time_str = "00:00.000"
-
         if live_data:
             current_time_str = ms_to_time_string(live_data.current_lap_time_ms)
 
@@ -68,27 +56,26 @@ class LiveTimingView:
             return
 
         # --- Deel 3: Bouw en render de historie tabel ---
-        headers = [
-            "Ronde",
-            "Sector 1",
-            "Sector 2",
-            "Sector 3",
-            "S1 + S2",  # Cumulatief
-            "Totaal",
-            "Valid"
-        ]
-
+        headers = ["Ronde", "Sector 1", "Sector 2", "Sector 3", "S1 + S2", "Totaal", "Valid"]
         rows = []
+
         for lap_data in completed_laps:
-            lap_num = lap_data.current_lap_num - 1
+            # --- GECORRIGEERDE LOGICA ---
+            # De data die we opslaan is de *voltooide* ronde.
+            # lap_data.current_lap_num is dus het correcte, voltooide rondenummer.
+            lap_num = lap_data.current_lap_num
+            # --- EINDE CORRECTIE ---
+
             s1_ms = lap_data.sector1_time_ms
             s2_ms = lap_data.sector2_time_ms
             total_ms = lap_data.last_lap_time_ms
 
+            # Bereken S3
             s3_ms = 0
             if total_ms > 0 and s1_ms > 0 and s2_ms > 0:
                 s3_ms = total_ms - s1_ms - s2_ms
 
+            # Bereken Cumulatief
             s1_s2_ms = 0
             if s1_ms > 0 and s2_ms > 0:
                 s1_s2_ms = s1_ms + s2_ms
@@ -108,8 +95,4 @@ class LiveTimingView:
             rows.append(row)
 
         print("\n  RONDETIJD HISTORIE:")
-
-        # --- DE CORRECTIE ---
-        # Het 'align' argument is verwijderd
         self.data_table.render_table(headers, rows)
-        # --- EINDE CORRECTIE ---ww
