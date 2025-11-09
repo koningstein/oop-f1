@@ -10,38 +10,44 @@ from .packet_header import PacketHeader
 
 @dataclass
 class LapData:
-    """Lap data voor één auto"""
-    last_lap_time_ms: int
-    current_lap_time_ms: int
-    sector1_time_ms: int
-    sector1_time_minutes: int
-    sector2_time_ms: int
-    sector2_time_minutes: int
-    delta_to_car_in_front_ms: int
-    delta_to_race_leader_ms: int
-    lap_distance: float
-    total_distance: float
-    safety_car_delta: float
-    car_position: int
-    current_lap_num: int
-    pit_status: int
-    num_pit_stops: int
-    sector: int
-    current_lap_invalid: bool
-    penalties: int
-    total_warnings: int
-    corner_cutting_warnings: int
-    num_unserved_drive_through_pens: int
-    num_unserved_stop_go_pens: int
-    grid_position: int
-    driver_status: int
-    result_status: int
-    pit_lane_timer_active: bool
-    pit_lane_time_in_lane_ms: int
-    pit_stop_timer_ms: int
-    pit_stop_should_serve_pen: bool
-    speed_trap_fastest_speed: float
-    speed_trap_fastest_lap: int
+    """
+    Dataclass for the lap data of one car.
+    (Versie 2: Met default waarden om leeg te initialiseren)
+    """
+    last_lap_time_ms: int = 0
+    current_lap_time_ms: int = 0
+    sector1_time_ms: int = 0
+    sector1_time_minutes: int = 0
+    sector2_time_ms: int = 0
+    sector2_time_minutes: int = 0
+    delta_to_car_in_front_ms: int = 0
+    delta_to_race_leader_ms: int = 0
+    lap_distance: float = 0.0
+    total_distance: float = 0.0
+    safety_car_delta: float = 0.0
+    car_position: int = 0
+    current_lap_num: int = 0
+    pit_status: int = 0
+    num_pit_stops: int = 0
+    sector: int = 0
+    current_lap_invalid: int = 0
+    penalties: int = 0
+    total_warnings: int = 0
+    corner_cutting_warnings: int = 0
+    num_unserved_drive_through_pens: int = 0
+    num_unserved_stop_go_pens: int = 0
+    grid_position: int = 0
+    driver_status: int = 0
+    result_status: int = 0
+    pit_lane_timer_active: int = 0
+    pit_lane_time_in_lane_ms: int = 0
+    pit_stop_timer_ms: int = 0
+    pit_stop_should_serve_pen: int = 0
+    speed_trap_fastest_speed: float = 0.0 # Nieuw in F1 25
+    speed_trap_fastest_lap: int = 0       # Nieuw in F1 25
+
+    PACKET_FORMAT = "<IIHHIHIIffBBBBBBBBBBBBBBBBBBffB"
+    PACKET_LEN = 88 # 88 bytes
     
     def get_sector1_time_ms(self) -> int:
         """Bereken totale sector 1 tijd in milliseconden"""

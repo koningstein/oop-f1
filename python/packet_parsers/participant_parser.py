@@ -10,22 +10,75 @@ from .packet_header import PacketHeader
 
 @dataclass
 class ParticipantData:
-    """Data voor één participant/driver"""
-    ai_controlled: bool
-    driver_id: int
-    network_id: int
-    team_id: int
-    my_team: bool
-    race_number: int
-    nationality: int
-    name: str
-    your_telemetry: bool
-    show_online_names: bool
-    tech_level: int
-    platform: int
-    colour1: int
-    colour2: int
-    colour3: int
+    """
+    Dataclass for participant data.
+    (Versie 3: Correcte F1 25 velden MET default waarden)
+    """
+    # Velden uit jouw F1 25 implementatie
+    ai_controlled: bool = False
+    driver_id: int = 0
+    network_id: int = 0
+    team_id: int = 0
+    my_team: bool = False
+    race_number: int = 0
+    nationality: int = 0
+    name: str = ""
+    your_telemetry: bool = False
+    show_online_names: bool = False
+    tech_level: int = 0
+    platform: int = 0  # Nieuw in F1 25
+    colour1: int = 0  # Nieuw in F1 25
+    colour2: int = 0  # Nieuw in F1 25
+    colour3: int = 0  # Nieuw in F1 25
+
+    # Jouw correcte PACKET_FORMAT en LEN
+    PACKET_FORMAT = "<?BBB?B B 32s B? HBBBB"  # 48 bytes
+    PACKET_LEN = 48
+
+    @staticmethod
+    def from_bytes(data: bytes) -> 'ParticipantData':
+        """
+        Unpackt bytes naar een ParticipantData object
+        (Deze code komt 1:1 uit jouw bronbestand)
+        """
+        try:
+            (
+                ai_controlled, driver_id, network_id, team_id, my_team,
+                race_number, nationality, name_bytes, your_telemetry,
+                show_online_names, tech_level, platform, colour1, colour2, colour3
+            ) = struct.unpack(ParticipantData.PACKET_FORMAT, data)
+
+            # Decodeer de naam
+            name = name_bytes.decode('utf-8').rstrip('\x00')
+
+            return ParticipantData(
+                ai_controlled=ai_controlled,
+                driver_id=driver_id,
+                network_id=network_id,
+                team_id=team_id,
+                my_team=my_team,
+                race_number=race_number,
+                nationality=nationality,
+                name=name,
+                your_telemetry=your_telemetry,
+                show_online_names=show_online_names,
+                tech_level=tech_level,
+                platform=platform,
+                colour1=colour1,
+                colour2=colour2,
+                colour3=colour3
+            )
+        except struct.error as e:
+            # Vang unpack error op als data corrupt of te kort is
+            print(f"[FOUT] Kon ParticipantData niet unpacken: {e}")
+            return ParticipantData()  # Retourneer een leeg object
+
+    def get_name(self) -> str:
+        """
+        Retourneer de naam van de deelnemer (veilig).
+        (Deze code komt 1:1 uit jouw bronbestand)
+        """
+        return self.name
 
 @dataclass
 class ParticipantsPacket:

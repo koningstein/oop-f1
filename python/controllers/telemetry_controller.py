@@ -1,99 +1,127 @@
 """
 F1 25 Telemetry System - Telemetry Controller
-Beheert de state van alle live telemetry data
+Beheert de data state en fungeert als interface voor de views.
+(Versie 5: State management voor P2, P4, P15 en Database (1.3))
 """
 import threading
-from typing import Optional
 from services import logger_service
+from models import SessionModel, DriverModel, LapModel
+from typing import Optional, List, Dict, Any
 
-# --- GECORRIGEERDE IMPORT ---
-# Importeer de 'LapData' dataclass
 try:
-    # Aanname: je 'oud2/lap_packets.py' heet nu 'packet_parsers/lap_parser.py'
-    from packet_parsers.lap_parser import LapData
+    from packet_parsers.packet_header import PacketHeader
+    from packet_parsers.lap_parser import LapData, LapDataPacket
+    from packet_parsers.participant_parser import ParticipantData, ParticipantsPacket
+    from packet_parsers.position_parser import LapPositionsData, LapPositionsPacket
 except ImportError:
-    print("[ERROR] Kon LapData structuur niet importeren. Functionaliteit 1.5 zal falen.")
-    class LapData:
-        pass
-
-# Importeer de Models, gebaseerd op je logbestanden
-try:
-    from models.session_model import SessionModel
-    from models.driver_model import DriverModel
-    from models.lap_model import LapModel
-except ImportError:
-    print("[ERROR] Kon SessionModel, DriverModel of LapModel niet importeren.")
-    # Placeholders
-    class SessionModel: pass
-    class DriverModel: pass
-    class LapModel: pass
-
+    print("[FATAL ERROR] TelemetryController kon parser dataclasses niet importeren.")
+    class LapData: pass
+    class LapDataPacket: pass
+    class ParticipantData: pass
+    class ParticipantsPacket: pass
+    class LapPositionsData: pass
+    class PacketHeader: pass
 
 class TelemetryController:
     """
-    Beheert de opslag en toegang tot alle telemetry data.
-    Deze klasse is thread-safe.
+    Beheert alle F1 25 telemetrie data (thread-safe)
     """
-    
+
     def __init__(self):
-        """Initialiseer de Telemetry Controller"""
         self.logger = logger_service.get_logger('TelemetryController')
-        
-        # Initialiseer de models die je in je structuur gebruikt
+
+        # Database modellen (voor 1.3)
         self.session_model = SessionModel()
         self.driver_model = DriverModel()
         self.lap_model = LapModel()
-        
-        # --- LOGICA VOOR SCHERM 1.5 ---
+
+        self.lock = threading.Lock()
+
+        # --- Data Opslag (State) ---
         self.player_lap_data: Optional[LapData] = None
-        self._lock = threading.Lock()
-        
-        self.logger.info("Telemetry Controller geïnitialiseerd")
+        self.all_lap_data: List[LapData] = [LapData() for _ in range(22)]
+        self.participants: List[ParticipantData] = [ParticipantData() for _ in range(22)]
+        self.position_data: Optional[LapPositionsData] = None
 
-    # --- Setters (aangeroepen door DataProcessor) ---
+        self.logger.info("Telemetry Controller geïnitialiseerd (Full Grid State)")
 
-    def update_lap_data(self, lap_data: LapData):
-        """
-        Update de huidige ronde data voor de speler.
-        Aangeroepen vanuit de DataProcessor thread.
-        
-        Args:
-            lap_data: De LapData struct voor de speler.
-        """
-        with self._lock:
-            self.player_lap_data = lap_data
-            
-        # Hier kun je de data ook doorgeven aan je database model
-        # self.lap_model.update_live_lap(lap_data)
-        
+    # --- Data Update Methoden (Aangeroepen door DataProcessor) ---
 
-    # --- Getters (aangeroepen door Views) ---
+    def update_lap_data_packet(self, packet: LapDataPacket, header: PacketHeader):
+        with self.lock:
+            self.all_lap_data = packet.lap_data
+            player_index = header.player_car_index
+            if 0 <= player_index < 22:
+                self.player_lap_data = packet.lap_data[player_index]
+
+    def update_participant_data(self, packet: ParticipantsPacket):
+        with self.lock:
+            self.participants = packet.participants
+
+    def update_position_data(self, packet: LapPositionsPacket):
+        """ Sla de positie data op (Packet 15) """
+        with self.lock:
+            self.position_data = packet.lap_positions
+            self.logger.info(f"Position data (P15) ontvangen. {packet.lap_positions.num_laps} rondes.")
+
+    # --- Data Getter Methoden (Aangeroepen door Views) ---
 
     def get_player_lap_data(self) -> Optional[LapData]:
-        """
-        Haal de huidige ronde data voor de speler op (thread-safe).
-        Aangeroepen vanuit de View/Main thread (voor Scherm 1.5).
-        
-        Returns:
-            De LapData struct, of None als er nog geen data is.
-        """
-        with self._lock:
+        """ Voor 1.5 Live Timing """
+        with self.lock:
             return self.player_lap_data
 
-    # --- METHODE VOOR SCHERM 1 ---
-    
-    def get_current_session_id(self) -> Optional[int]:
-        """
-        Haalt het ID van de huidige actieve sessie op.
-        (Placeholder)
-        """
-        # Log de waarschuwing (dit voorkomt de crash van vorig log)
-        if not hasattr(self, '_session_id_warning_logged'):
-            self.logger.warning("TelemetryController.get_current_session_id aangeroepen (placeholder).")
-            self.logger.warning("Screen1Overview.py moet worden bijgewerkt.")
-            self._session_id_warning_logged = True # Log maar één keer
-        
-        # Return None om crashes te voorkomen
-        return None
+    def get_combined_timing_data(self) -> List[Dict[str, Any]]:
+        """ Combineert P2 en P4 voor leaderboards (1.1, 1.2) """
+        combined_data = []
+        with self.lock:
+            local_participants = list(self.participants)
+            local_lap_data = list(self.all_lap_data)
 
-    # ... (Hier komen je andere controller-methodes) ...
+            for i in range(22):
+                p_data = local_participants[i]
+                l_data = local_lap_data[i]
+                driver_name = p_data.get_name()
+
+                if driver_name:
+                    combined_data.append({
+                        'name': driver_name,
+                        'position': l_data.car_position,
+                        'last_lap_time_ms': l_data.last_lap_time_ms,
+                        'current_lap_time_ms': l_data.current_lap_time_ms,
+                        'best_lap_time_ms': l_data.best_lap_time_ms,
+                    })
+        return sorted(combined_data, key=lambda x: x['position'])
+
+    def get_position_chart_data(self) -> (Optional[LapPositionsData], List[str]):
+        """ Haalt P15 data en P4 namen op voor 1.4 """
+        with self.lock:
+            if not self.position_data or not self.participants:
+                return None, []
+
+            names = [p.get_name() for p in self.participants if p.get_name()]
+            return self.position_data, names
+
+    def get_tournament_standings(self) -> List[Dict[str, Any]]:
+        """
+        Haalt data op uit de DATABASE (Models) voor 1.3
+        Dit is een placeholder; de daadwerkelijke query moet nog gebouwd worden.
+        """
+        self.logger.info("get_tournament_standings (1.3) aangeroepen")
+        try:
+            # TODO: Bouw hier de complexe SQL query
+            # Voor nu, return we demo data uit de *database model laag*
+            demo_standings = [
+                {"Pos": "1.", "Naam": "Marcel (DB)", "Team": "Mercedes", "Punten": "150"},
+                {"Pos": "2.", "Naam": "Verstappen (DB)", "Team": "Red Bull", "Punten": "144"},
+            ]
+            # drivers = self.driver_model.get_all_drivers_with_points()
+            # return drivers
+            return demo_standings
+        except Exception as e:
+            self.logger.error(f"Databasefout in get_tournament_standings: {e}")
+            return []
+
+    def get_current_session_id(self):
+        self.logger.warning("TelemetryController.get_current_session_id aangeroepen (placeholder).")
+        return None
