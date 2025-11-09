@@ -1,6 +1,6 @@
 """
 F1 25 Telemetry System - Data Processor
-(Versie 6: Gecorrigeerde Enum check)
+(Versie 7: Toevoeging Packet 11 - Session History)
 """
 from services import logger_service
 from controllers.telemetry_controller import TelemetryController
@@ -11,11 +11,11 @@ try:
     from packet_parsers.lap_parser import LapDataParser, LapDataPacket
     from packet_parsers.participant_parser import ParticipantsParser, ParticipantsPacket
     from packet_parsers.position_parser import PositionParser, LapPositionsPacket
+    # --- NIEUWE IMPORT ---
+    from packet_parsers.history_parser import SessionHistoryParser, SessionHistoryData
 except ImportError as e:
     print(f"[FATAL ERROR] DataProcessor kon packet parsers niet importeren: {e}")
-    # De sys.path fix in main.py zou dit moeten voorkomen
     logger_service.get_logger('DataProcessor').error(f"Fatal Import Error: {e}", exc_info=True)
-    # Stop de applicatie als de parsers niet geladen kunnen worden
     raise
 
 
@@ -33,8 +33,10 @@ class DataProcessor:
             PacketID.LAP_DATA: LapDataParser(),
             PacketID.PARTICIPANTS: ParticipantsParser(),
             PacketID.LAP_POSITIONS: PositionParser(),
+            # --- NIEUWE PARSER ---
+            PacketID.SESSION_HISTORY: SessionHistoryParser(),
         }
-        self.logger.info("Data Processor geïnitialiseerd (P2, P4, P15)")
+        self.logger.info("Data Processor geïnitialiseerd (P2, P4, P11, P15)")
 
     def process_packet(self, data: bytes):
         """
@@ -68,17 +70,20 @@ class DataProcessor:
                 elif packet_id == PacketID.LAP_POSITIONS:
                     self.telemetry_controller.update_position_data(parsed_packet_object)
 
+                # --- NIEUWE ROUTE (PACKET 11) ---
+                elif packet_id == PacketID.SESSION_HISTORY:
+                    # Filter: Stuur alleen de historie van de speler naar de controller
+                    player_index = header.player_car_index
+                    if parsed_packet_object.car_idx == player_index:
+                        self.telemetry_controller.update_session_history(parsed_packet_object, header)
+                # --- EINDE NIEUWE ROUTE ---
+
             else:
-                # --- Fout 3 GECORRIGEERD ---
-                # Gebruik try/except om te checken of de ID *bestaat* in de Enum
                 try:
-                    # Probeer de ID te casten naar een bekende PacketID
                     packet_name = PacketID(packet_id).name
                     self.logger.debug(f"Nog geen parser geregistreerd voor PacketID {packet_id} ({packet_name})")
                 except ValueError:
-                    # Dit is een onbekende/ongeldige packet ID
                     self.logger.warning(f"Onbekende PacketID {packet_id} ontvangen.")
-                # --- EINDE CORRRECTIE ---
 
         except Exception as e:
             packet_id_str = header.packet_id if header else 'N/A'
