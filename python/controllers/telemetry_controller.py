@@ -1,7 +1,7 @@
 """
 F1 25 Telemetry System - Telemetry Controller
 Beheert de state en het opslaan van telemetrie data.
-(Versie 9: Correcte snake_case attributen voor LapData)
+(Versie 11: Correcte 'last_lap_time_ms' attribuut)
 """
 
 from services import logger_service
@@ -32,6 +32,8 @@ class TelemetryController:
         self.validator = data_validator
 
         self.player_car_index: Optional[int] = None
+        # Dict om bij te houden welke ronde we al hebben opgeslagen (per auto)
+        self.last_saved_lap_num: Dict[int, int] = {}
 
         self.logger.info("Telemetry Controller geïnitialiseerd")
 
@@ -100,29 +102,40 @@ class TelemetryController:
         current_db_id = self._get_db_session_id(session_uid)
 
         if current_db_id is None:
-            self.logger.warning(
-                f"Ontving LapData (UID {session_uid}), maar sessie is nog niet in DB. Data wordt genegeerd.")
+            self.logger.debug(f"Ontving LapData (UID {session_uid}), maar sessie is nog niet in DB.")
             return
 
-        # --- HIER IS DE FIX (snake_case) ---
         # Gebruik de Python-attributen van de LapData dataclass
         lap_number_to_save = lap_data.current_lap_num - 1
+
+        # --- HIER IS DE FIX (Volgens Traceback) ---
+        # Fout: last_lap_time_in_ms
+        # Correct: last_lap_time_ms
+        last_lap_time_ms = lap_data.last_lap_time_ms
         # --- EINDE FIX ---
 
         if lap_number_to_save <= 0:
-            return
+            return # Sla out-lap niet op
+
+        if last_lap_time_ms == 0:
+            return # Sla geen data op als ronde nog niet voltooid is
+
+        last_saved = self.last_saved_lap_num.get(car_index, 0)
+        if lap_number_to_save <= last_saved:
+            return # Reeds opgeslagen
 
         try:
-            # --- HIER IS DE FIX (snake_case) ---
+            # Gebruik snake_case attributen (aanname dat deze correct zijn
+            # zoals 'current_lap_num')
             s1_ms = self._convert_sector_time(lap_data.sector1_time_minutes_part, lap_data.sector1_time_ms_part)
             s2_ms = self._convert_sector_time(lap_data.sector2_time_minutes_part, lap_data.sector2_time_ms_part)
-            s3_ms = self._calculate_sector3(lap_data.last_lap_time_in_ms, s1_ms, s2_ms)
+            s3_ms = self._calculate_sector3(last_lap_time_ms, s1_ms, s2_ms)
 
             lap_data_dict = {
                 'session_id': current_db_id,
                 'car_index': car_index,
                 'lap_number': lap_number_to_save,
-                'lap_time_ms': lap_data.last_lap_time_in_ms,
+                'lap_time_ms': last_lap_time_ms, # Gebruik de gecorrigeerde variabele
                 'sector1_ms': s1_ms,
                 'sector2_ms': s2_ms,
                 'sector3_ms': s3_ms,
@@ -131,10 +144,11 @@ class TelemetryController:
                 'sector2_valid': s2_ms is not None,
                 'sector3_valid': s3_ms is not None,
             }
-            # --- EINDE FIX ---
 
             if self.validator.validate_lap_data(lap_data_dict):
                 self.lap_model.save_lap(lap_data_dict)
+                self.last_saved_lap_num[car_index] = lap_number_to_save
+                self.logger.info(f"Ronde {lap_number_to_save} opgeslagen voor auto {car_index}.")
             else:
                 self.logger.warning(f"Lap data (P2) faalde validatie: {lap_data_dict}")
 
@@ -145,26 +159,27 @@ class TelemetryController:
         """
         Ontvangt SessionHistory (Packet 11) en werkt de
         definitieve validatie-status bij in de database.
-        (Deze functie was al correct en gebruikt snake_case)
         """
         current_db_id = self._get_db_session_id(session_uid)
 
         if current_db_id is None:
-            self.logger.warning(
-                f"Ontving History (UID {session_uid}), maar sessie is niet in DB. Data wordt genegeerd.")
+            self.logger.debug(f"Ontving History (UID {session_uid}), maar sessie is nog niet in DB.")
             return
 
         car_index = history_packet.car_idx
 
         if self.player_car_index is None:
-            # Aanname: de history is van de speler
-            self.player_car_index = car_index
+             self.player_car_index = car_index
+
+        if car_index != self.player_car_index:
+            self.logger.debug(f"Packet 11 genegeerd: data is voor AI auto {car_index}.")
+            return
 
         self.logger.debug(f"Verwerken Packet 11 (History) voor auto {car_index} in sessie {current_db_id}")
 
         for i in range(history_packet.num_laps):
             lap_history: LapHistoryData = history_packet.lap_history_data[i]
-            lap_number = i + 1  # Ronden zijn 1-based
+            lap_number = i + 1
 
             validation_dict = self.validator.parse_lap_validation_flags(
                 lap_history.lap_valid_bit_flags
@@ -210,7 +225,7 @@ class TelemetryController:
 
         current_id = self.session_model.get_current_session_id()
         if current_id:
-            return current_id
+             return current_id
 
         return None
 
