@@ -1,55 +1,65 @@
 """
 F1 25 Telemetry System - Main Application
-(Versie 6: Gecorrigeerde run() loop logica)
+Techniek College Rotterdam - Software Developer MBO-4
+
+Hoofdprogramma voor F1 25 telemetry systeem met submenu ondersteuning
+Start alle componenten en runt de main loop
 """
 
-# --- SYSTEEM IMPORT FIX ---
 import sys
-import os
 import time
-
-# Voeg de 'python' map (project root) toe aan het pad
-project_root = os.path.dirname(os.path.abspath(__file__))
-if project_root not in sys.path:
-    sys.path.insert(0, project_root)
-# --- EINDE SYSTEEM IMPORT FIX ---
-
-from typing import Optional
-
-# Non-blocking input (Windows-specifiek)
-try:
-    import msvcrt
-except ImportError:
-    msvcrt = None
-
 from services import logger_service, UDPListener
-from controllers import TelemetryController, MenuController, DataProcessor
+
+# --- AANGEPASTE IMPORTS ---
+# DataProcessor is nu toegevoegd
+# SessionController is TOEGEVOEGD
+from controllers import TelemetryController, MenuController, DataProcessor, SessionController
+# --- EINDE AANPASSING ---
+
 from views import MenuView, Screen1Overview, Screen2Timing, Screen3Telemetry
 from views import Screen4Standings, Screen5Comparison, Screen6History
 
-# Importeer de specifieke views voor Scherm 1
+# Importeer de nieuwe, specifieke view voor Scherm 1.5
 from views.screen1_features.live_timing_view import LiveTimingView
-from views.screen1_features.practice_view import PracticeView
-from views.screen1_features.race_view import RaceView
-from views.screen1_features.tournament_view import TournamentView
-from views.screen1_features.position_chart_view import PositionChartView
+
+from packet_parsers import PacketID
+
 
 class F1TelemetryApp:
     """Hoofd applicatie klasse met submenu ondersteuning"""
 
     def __init__(self):
+        """Initialiseer applicatie"""
         self.logger = logger_service.get_logger('MainApp')
         self.logger.info("F1 25 Telemetry System wordt gestart...")
 
+        # --- MVC BEDRADING (AANGEPAST) ---
+
+        # 1. Initialiseer de Controllers die data opslaan
         self.telemetry_controller = TelemetryController()
+        # TOEGEVOEGD: Initialiseer de SessionController
+        self.session_controller = SessionController()
         self.menu_controller = MenuController()
-        self.data_processor = DataProcessor(self.telemetry_controller)
+
+        # 2. Initialiseer de DataProcessor en geef de controllers mee
+        self.data_processor = DataProcessor(
+            telemetry_controller=self.telemetry_controller,
+            session_controller=self.session_controller
+        )
+        # --- EINDE AANPASSING ---
+
+        # 3. Initialiseer de UDP Listener en geef de process_packet
+        #    methode van de DataProcessor als callback mee.
         self.udp_listener = UDPListener(
             packet_handler=self.data_processor.process_packet
         )
+
+        # --- Einde Bedrading ---
+
+        # Views
         self.menu_view = MenuView(self.menu_controller)
 
-        # Hoofdschermen
+        # Schermen initialiseren
         self.screen1 = Screen1Overview(self.telemetry_controller)
         self.screen2 = Screen2Timing(self.telemetry_controller)
         self.screen3 = Screen3Telemetry(self.telemetry_controller)
@@ -57,13 +67,10 @@ class F1TelemetryApp:
         self.screen5 = Screen5Comparison(self.telemetry_controller)
         self.screen6 = Screen6History(self.telemetry_controller)
 
-        # Views voor Scherm 1
+        # Initialiseer de specifieke view voor 1.5
         self.live_timing_view = LiveTimingView(self.telemetry_controller)
-        self.practice_view = PracticeView(self.telemetry_controller)
-        self.race_view = RaceView(self.telemetry_controller)
-        self.tournament_view = TournamentView(self.telemetry_controller)
-        self.position_chart_view = PositionChartView(self.telemetry_controller)
 
+        # Registreer schermen bij menu controller
         self.menu_controller.register_screen(1, self.screen1.render)
         self.menu_controller.register_screen(2, self.screen2.render)
         self.menu_controller.register_screen(3, self.screen3.render)
@@ -71,49 +78,116 @@ class F1TelemetryApp:
         self.menu_controller.register_screen(5, self.screen5.render)
         self.menu_controller.register_screen(6, self.screen6.render)
 
-        self._register_submenu_functions()
+        # Registreer enkele demo submenu functies
+        self._register_demo_submenu_functions()
+
         self.running = False
 
-    def _register_submenu_functions(self):
-        """Registreer alle submenu functies"""
-        self.menu_controller.register_submenu_function(1, 1, self.practice_view.render, is_live=True)
-        self.menu_controller.register_submenu_function(1, 2, self.race_view.render, is_live=True)
-        self.menu_controller.register_submenu_function(1, 3, self.tournament_view.render, is_live=False)
-        self.menu_controller.register_submenu_function(1, 4, self.position_chart_view.render, is_live=False)
-        self.menu_controller.register_submenu_function(1, 5, self.live_timing_view.render, is_live=True)
+    def _register_demo_submenu_functions(self):
+        """Registreer demo submenu functies"""
+        # Scherm 1 functies
+        self.menu_controller.register_submenu_function(1, 1, self.demo_practice_mode)
+        self.menu_controller.register_submenu_function(1, 2, self.demo_race_mode)
 
-        self.menu_controller.register_submenu_function(3, 1, self.demo_dashboard, is_live=False)
-        self.menu_controller.register_submenu_function(3, 2, self.demo_fuel_ers, is_live=False)
+        # Koppel 1.5 aan de render() methode van de nieuwe view
+        self.menu_controller.register_submenu_function(1, 5, self.live_timing_view.render)
+
+        # Scherm 3 functies
+        self.menu_controller.register_submenu_function(3, 1, self.demo_dashboard)
+        self.menu_controller.register_submenu_function(3, 2, self.demo_fuel_ers)
+
+        # Meer functies kunnen hier worden toegevoegd...
+
+    # Demo submenu functies
+    def demo_practice_mode(self):
+        """Demo Practice Mode functie"""
+        print("\n" + "=" * 60)
+        print("PRACTICE MODE - LEADERBOARD + CONSISTENTIE ANALYSE")
+        print("=" * 60)
+        print("Demo data:")
+        print("1. Lewis Hamilton    - 1:23.456  [Consistentie: 98%]")
+        print("2. Max Verstappen    - 1:23.789  [Consistentie: 96%]")
+        print("3. Student Marcel    - 1:24.123  [Consistentie: 89%]")
+        print("-" * 60)
+        print("Deze functie toont:")
+        print("- Rondetijden leaderboard")
+        print("- Consistentie analyse per rijder")
+        print("- Best lap times")
+        print("=" * 60)
+
+    def demo_race_mode(self):
+        """Demo Race Mode functie"""
+        print("\n" + "=" * 60)
+        print("RACE MODE - LIVE KLASSEMENT + DELTA'S")
+        print("=" * 60)
+        print("Live posities:")
+        print("P1  Lewis Hamilton    [+0.000]")
+        print("P2  Max Verstappen    [+2.156]")
+        print("P3  Student Marcel    [+8.945]")
+        print("-" * 60)
+        print("Deze functie toont:")
+        print("- Live race klassement")
+        print("- Delta's tussen rijders")
+        print("- Gap naar leider")
+        print("=" * 60)
 
     def demo_dashboard(self):
-        os.system('cls' if os.name == 'nt' else 'clear')
-        print("\n[DEMO] Scherm 3.1 - Dashboard")
+        """Demo Dashboard functie"""
+        print("\n" + "=" * 60)
+        print("DASHBOARD - LIVE TELEMETRIE AUTO 1")
+        print("=" * 60)
+        print("Speed:    287 km/h       RPM:      8245")
+        print("Gear:     6              Throttle: 98%")
+        print("Brake:    0%             Steer:    +12°")
+        print("DRS:      OPEN           ERS:      87%")
+        print("-" * 60)
+        print("Deze functie toont:")
+        print("- Real-time speed, RPM, gear")
+        print("- Throttle/brake inputs")
+        print("- Steering angle")
+        print("- DRS en ERS status")
+        print("=" * 60)
 
     def demo_fuel_ers(self):
-        os.system('cls' if os.name == 'nt' else 'clear')
-        print("\n[DEMO] Scherm 3.2 - Fuel & ERS")
-
-    def get_non_blocking_input(self) -> Optional[str]:
-        if not msvcrt: return None
-        if msvcrt.kbhit():
-            key = msvcrt.getch()
-            try:
-                if key == b'\r': return None
-                return key.decode('utf-8')
-            except UnicodeDecodeError: return None
-        return None
+        """Demo Fuel & ERS Management functie"""
+        print("\n" + "=" * 60)
+        print("FUEL & ERS MANAGEMENT - AUTO 1")
+        print("=" * 60)
+        print("Fuel Remaining:  34.5 kg")
+        print("Laps Remaining:  +12 laps")
+        print("Fuel per Lap:    2.8 kg/lap")
+        print("ERS Store:       87%")
+        print("ERS Deploy:      Auto Mode")
+        print("-" * 60)
+        print("Deze functie toont:")
+        print("- Real-time brandstof verbruik")
+        print("- Geschatte laps remaining")
+        print("- ERS deployment strategie")
+        print("- Fuel saving tips")
+        print("=" * 60)
 
     def start(self):
+        """Start de applicatie"""
         try:
+            # Toon welkomst
             self.menu_view.show_welcome()
+
+            # Start UDP listener
             self.udp_listener.start()
-            time.sleep(0.5)
+            time.sleep(0.5)  # Geef listener tijd om te starten
+
             if not self.udp_listener.is_running():
                 raise Exception("UDP listener kon niet worden gestart")
+
+            # Start menu controller
             self.menu_controller.start()
             self.running = True
+
             self.logger.info("Applicatie succesvol gestart")
+
+            # Main loop
             self.run()
+
         except KeyboardInterrupt:
             self.logger.info("Applicatie onderbroken door gebruiker (Ctrl+C)")
             self.stop()
@@ -123,71 +197,54 @@ class F1TelemetryApp:
             self.stop()
             sys.exit(1)
 
-    # --- GECORRIGEERDE run() METHODE ---
     def run(self):
-        """Main application loop met automatische live-view detectie."""
-
-        last_refresh_time = time.time()
-        refresh_interval = 1.0  # Refresh interval voor live views
+        """Main application loop met submenu ondersteuning"""
+        auto_refresh = False
+        last_refresh = time.time()
 
         while self.running:
             try:
-                choice = None
-                # Check de status AAN HET BEGIN van de loop
-                is_live_view_active = self.menu_controller.is_current_view_live()
+                # Render huidig scherm
+                self.menu_controller.render_current_screen()
 
-                if is_live_view_active:
-                    # --- LIVE VIEW MODUS (NON-BLOCKING) ---
-                    choice = self.get_non_blocking_input()
+                # Toon status
+                self.menu_view.show_status(self.udp_listener)
 
-                    current_time = time.time()
-                    if (current_time - last_refresh_time) < refresh_interval:
-                        if not choice:
-                            time.sleep(0.05) # Voorkom 100% CPU load
-                            continue
+                # Toon menu (kan hoofdmenu of submenu zijn)
+                self.menu_view.show_menu()
 
-                    last_refresh_time = current_time
+                # Check auto-refresh
+                if auto_refresh:
+                    print("Auto-refresh actief (druk R om uit te schakelen)")
+                    print()
 
-                    self.menu_controller.render_current_screen() # Render de live view
-                    self.menu_view.show_status(self.udp_listener)
-                    self.menu_view.show_menu() # Toont "Actie (B=terug...)"
-                    print(f"  AUTO-REFRESH AAN. Druk 'B' (terug) of '0' (afsluiten)...")
+                    # Wacht kort en refresh
+                    time.sleep(2.0)
 
-                else:
-                    # --- NORMAAL MENU MODUS (BLOCKING) ---
-                    self.menu_controller.render_current_screen() # Render het menu
-                    self.menu_view.show_status(self.udp_listener)
-                    self.menu_view.show_menu() # Toont het menu (1-6 of 1.1-1.5)
-                    choice = self.menu_view.get_user_input()
-
-                if not choice:
+                    # Check voor input met timeout (niet geïmplementeerd in basic versie)
                     continue
 
-                # --- VERWERK DE INPUT ---
+                # Haal gebruiker input op
+                choice = self.menu_view.get_user_input()
+
+                # Verwerk input met nieuwe submenu logica
                 continue_running = self.menu_controller.handle_input(choice)
 
                 if not continue_running:
                     self.running = False
                     break
 
-                # --- GECORRIGEERDE LOGICA ---
-                # Na het verwerken van de input, check de *NIEUWE* status.
-                is_NOW_live = self.menu_controller.is_current_view_live()
+                # Special commands
+                if choice.upper() == 'R':
+                    auto_refresh = not auto_refresh
+                    status = "aan" if auto_refresh else "uit"
+                    print(f"Auto-refresh {status}")
+                    time.sleep(1)
 
-                # Als we NIET in een live view zijn, EN we zijn in een functie
-                # (niet een menu), DAN is het een statisch scherm.
-                if not is_NOW_live and \
-                   not self.menu_controller.is_in_submenu_mode() and \
-                   self.menu_controller.get_current_submenu() is not None:
-
-                    print("\nStatisch scherm. Druk ENTER om terug te gaan...")
+                # Kleine pause voor submenu functies
+                if not self.menu_controller.is_in_submenu_mode() and self.menu_controller.get_current_submenu() is not None:
+                    print("\nDruk ENTER om door te gaan...")
                     input()
-                    # Na 'enter', ga automatisch terug
-                    self.menu_controller.back_to_submenu()
-
-                # Als de view NU wel live is, doet de loop niets
-                # en gaat naar de *volgende iteratie*, waar
-                # 'is_live_view_active' bovenaan True zal zijn.
 
             except KeyboardInterrupt:
                 self.logger.info("Onderbroken door gebruiker")
@@ -211,10 +268,12 @@ class F1TelemetryApp:
         self.running = False
         self.logger.info("F1 25 Telemetry System gestopt")
 
+
 def main():
     """Main entry point"""
     app = F1TelemetryApp()
     app.start()
+
 
 if __name__ == "__main__":
     main()

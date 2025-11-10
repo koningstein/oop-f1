@@ -17,8 +17,8 @@ class LapModel:
     
     def save_lap(self, lap_data: Dict[str, Any]) -> bool:
         """
-        Sla lap time op in database
-        
+        Sla lap time op in database (UPSERT)
+
         Args:
             lap_data: Dict met lap informatie
                 - session_id
@@ -28,7 +28,7 @@ class LapModel:
                 - sector1_ms, sector2_ms, sector3_ms
                 - sector1_valid, sector2_valid, sector3_valid
                 - is_valid
-        
+
         Returns:
             True als succesvol
         """
@@ -48,7 +48,7 @@ class LapModel:
                 sector3_valid = VALUES(sector3_valid),
                 is_valid = VALUES(is_valid)
         """
-        
+
         params = (
             lap_data.get('session_id'),
             lap_data.get('car_index'),
@@ -62,26 +62,26 @@ class LapModel:
             lap_data.get('sector3_valid', True),
             lap_data.get('is_valid', True)
         )
-        
+
         success = self.db.execute_query(query, params)
-        
+
         if success:
             self.logger.debug(
                 f"Lap opgeslagen: Session {lap_data.get('session_id')}, "
                 f"Car {lap_data.get('car_index')}, Lap {lap_data.get('lap_number')}"
             )
-        
+
         logger_service.log_database_operation("INSERT/UPDATE", "laps", success)
         return success
-    
+
     def get_laps_for_driver(self, session_id: int, car_index: int) -> List[Dict[str, Any]]:
         """
         Haal alle laps op voor een driver in een sessie
-        
+
         Args:
             session_id: Session ID
             car_index: Car index
-            
+
         Returns:
             List met lap dicts
         """
@@ -91,15 +91,15 @@ class LapModel:
             ORDER BY lap_number ASC
         """
         return self.db.fetch_all(query, (session_id, car_index))
-    
+
     def get_best_lap(self, session_id: int, car_index: int) -> Optional[Dict[str, Any]]:
         """
         Haal beste lap tijd op voor een driver
-        
+
         Args:
             session_id: Session ID
             car_index: Car index
-            
+
         Returns:
             Lap dict met snelste tijd of None
         """
@@ -110,15 +110,15 @@ class LapModel:
             LIMIT 1
         """
         return self.db.fetch_one(query, (session_id, car_index))
-    
+
     def get_best_sectors(self, session_id: int, car_index: int) -> Dict[str, Optional[int]]:
         """
         Haal beste sector tijden op voor een driver
-        
+
         Args:
             session_id: Session ID
             car_index: Car index
-            
+
         Returns:
             Dict met beste sector tijden
         """
@@ -127,7 +127,7 @@ class LapModel:
             'sector2': None,
             'sector3': None
         }
-        
+
         # Beste sector 1
         query = """
             SELECT MIN(sector1_ms) as best FROM laps
@@ -136,7 +136,7 @@ class LapModel:
         s1 = self.db.fetch_one(query, (session_id, car_index))
         if s1 and s1['best']:
             result['sector1'] = s1['best']
-        
+
         # Beste sector 2
         query = """
             SELECT MIN(sector2_ms) as best FROM laps
@@ -145,7 +145,7 @@ class LapModel:
         s2 = self.db.fetch_one(query, (session_id, car_index))
         if s2 and s2['best']:
             result['sector2'] = s2['best']
-        
+
         # Beste sector 3
         query = """
             SELECT MIN(sector3_ms) as best FROM laps
@@ -154,16 +154,16 @@ class LapModel:
         s3 = self.db.fetch_one(query, (session_id, car_index))
         if s3 and s3['best']:
             result['sector3'] = s3['best']
-        
+
         return result
-    
+
     def get_session_leaderboard(self, session_id: int) -> List[Dict[str, Any]]:
         """
         Haal leaderboard op voor een sessie (beste lap per driver)
-        
+
         Args:
             session_id: Session ID
-            
+
         Returns:
             List met driver best laps, gesorteerd op tijd
         """
@@ -181,15 +181,15 @@ class LapModel:
             ORDER BY best_lap_time ASC
         """
         return self.db.fetch_all(query, (session_id,))
-    
+
     def get_lap_count(self, session_id: int, car_index: int) -> int:
         """
         Tel aantal laps voor een driver
-        
+
         Args:
             session_id: Session ID
             car_index: Car index
-            
+
         Returns:
             Aantal laps
         """

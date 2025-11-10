@@ -1,171 +1,228 @@
 """
 F1 25 Telemetry System - Telemetry Controller
-(Versie 8: State management voor Packet 2 en Packet 11)
+Beheert de state en het opslaan van telemetrie data.
+(Versie 9: Correcte snake_case attributen voor LapData)
 """
-import threading
+
 from services import logger_service
-from models import SessionModel, DriverModel, LapModel
-from typing import Optional, List, Dict, Any
+from typing import Optional, Dict, Any, List
 
-try:
-    from packet_parsers.packet_header import PacketHeader
-    from packet_parsers.lap_parser import LapData, LapDataPacket
-    from packet_parsers.participant_parser import ParticipantData, ParticipantsPacket
-    from packet_parsers.position_parser import LapPositionsData, LapPositionsPacket
-    # --- NIEUWE IMPORT ---
-    from packet_parsers.history_parser import SessionHistoryData
-except ImportError:
-    print("[FATAL ERROR] TelemetryController kon parser dataclasses niet importeren.")
-
-
-    class LapData:
-        pass
-
-
-    class LapDataPacket:
-        pass
-
-
-    class ParticipantData:
-        pass
-
-
-    class ParticipantsPacket:
-        pass
-
-
-    class LapPositionsData:
-        pass
-
-
-    class PacketHeader:
-        pass
-
-
-    class SessionHistoryData:
-        pass  # Placeholder
+# --- IMPORTS ---
+from models.lap_model import LapModel
+from models.session_model import SessionModel
+from models.driver_model import DriverModel
+from packet_parsers.lap_parser import LapData
+from packet_parsers.history_parser import SessionHistoryData, LapHistoryData
+from services.data_validator import data_validator
 
 
 class TelemetryController:
+    """
+    Verwerkt specifieke data (zoals LapData) en roept de
+    juiste models aan om de data op te slaan in de database.
+    """
 
     def __init__(self):
+        """Initialiseer de Telemetry Controller"""
         self.logger = logger_service.get_logger('TelemetryController')
+
+        self.lap_model = LapModel()
         self.session_model = SessionModel()
         self.driver_model = DriverModel()
-        self.lap_model = LapModel()
-        self.lock = threading.Lock()
+        self.validator = data_validator
 
-        # --- Data Opslag (State) ---
+        self.player_car_index: Optional[int] = None
 
-        # Voor Live Timing (Packet 2)
-        self.player_lap_data: Optional[LapData] = None
-        self.all_lap_data: List[LapData] = [LapData() for _ in range(22)]
+        self.logger.info("Telemetry Controller geïnitialiseerd")
 
-        # Voor Historie Tabel (Packet 11)
-        self.player_session_history: Optional[SessionHistoryData] = None
-
-        # Andere data
-        self.participants: List[ParticipantData] = [ParticipantData() for _ in range(22)]
-        self.position_data: Optional[LapPositionsData] = None
-
-        self.logger.info("Telemetry Controller geïnitialiseerd (P2, P4, P11, P15)")
-
-    # --- Data Update Methoden ---
-
-    def update_lap_data_packet(self, packet: LapDataPacket, header: PacketHeader):
-        """ Update de LIVE data van Packet 2 """
-        with self.lock:
-            self.all_lap_data = packet.lap_data
-            player_index = header.player_car_index
-            if not (0 <= player_index < 22):
-                return
-
-            # Sla alleen de *huidige* live data van de speler op
-            self.player_lap_data = packet.lap_data[player_index]
-
-    def update_session_history(self, packet: SessionHistoryData, header: PacketHeader):
+    def get_current_session_id(self) -> Optional[int]:
         """
-        Update de HISTORIE data van Packet 11.
-        De DataProcessor filtert al dat dit de speler is.
+        Pass-through methode om de View (screen1) toegang te geven
+        tot de actieve session ID via het session_model.
         """
-        with self.lock:
-            self.player_session_history = packet
-            self.logger.debug(f"P11 (History) geüpdatet voor car_idx {packet.car_idx}")
+        return self.session_model.get_current_session_id()
 
-    def update_participant_data(self, packet: ParticipantsPacket):
-        with self.lock:
-            self.participants = packet.participants
+    # --- FUNCTIES VOOR DE VIEW (DATA OPHALEN) ---
 
-    def update_position_data(self, packet: LapPositionsPacket):
-        with self.lock:
-            self.position_data = packet.lap_positions
+    def get_player_lap_data(self) -> Optional[Dict[str, Any]]:
+        """
+        Haalt de *meest recente* opgeslagen ronde data op voor de speler.
+        """
+        session_id = self.get_current_session_id()
+        if session_id is None or self.player_car_index is None:
+            return None
 
-    # --- Data Getter Methoden ---
-
-    def get_player_lap_data(self) -> Optional[LapData]:
-        """ Voor live 'Huidige Ronde' (1.5) - Bron: Packet 2 """
-        with self.lock:
-            return self.player_lap_data
-
-    def get_player_lap_history(self) -> Optional[SessionHistoryData]:
-        """ Haalt de complete ronde historie op (voor 1.5) - Bron: Packet 11 """
-        with self.lock:
-            return self.player_session_history
-
-    # ... (Rest van de getters blijven ongewijzigd) ...
-    def get_combined_timing_data(self) -> List[Dict[str, Any]]:
-        combined_data = []
-        with self.lock:
-            local_participants = list(self.participants)
-            local_lap_data = list(self.all_lap_data)
-
-            # Voeg een check toe of de data al geïnitialiseerd is
-            if not local_participants or not local_lap_data:
-                return []
-
-            for i in range(22):
-                p_data = local_participants[i]
-                l_data = local_lap_data[i]
-
-                # Check of p_data wel de get_name methode heeft
-                driver_name = ""
-                if hasattr(p_data, 'get_name'):
-                    driver_name = p_data.get_name()
-
-                if driver_name:
-                    # Zoek naar best_lap_time_ms (bestaat niet in LapData V11)
-                    # We gebruiken last_lap_time_ms als fallback
-                    best_lap_ms = 0
-                    if hasattr(l_data, 'best_lap_time_ms'):
-                        best_lap_ms = l_data.best_lap_time_ms
-
-                    combined_data.append({
-                        'name': driver_name, 'position': l_data.car_position,
-                        'last_lap_time_ms': l_data.last_lap_time_ms,
-                        'current_lap_time_ms': l_data.current_lap_time_ms,
-                        'best_lap_time_ms': best_lap_ms,  # Gebruik de gevonden waarde
-                    })
-        return sorted(combined_data, key=lambda x: x['position'])
-
-    def get_position_chart_data(self) -> (Optional[LapPositionsData], List[str]):
-        with self.lock:
-            if not self.position_data or not self.participants:
-                return None, []
-            names = [p.get_name() for p in self.participants if hasattr(p, 'get_name') and p.get_name()]
-            return self.position_data, names
-
-    def get_tournament_standings(self) -> List[Dict[str, Any]]:
-        self.logger.info("get_tournament_standings (1.3) aangeroepen")
         try:
-            demo_standings = [
-                {"Pos": "1.", "Naam": "Marcel (DB)", "Team": "Mercedes", "Punten": "150"},
-                {"Pos": "2.", "Naam": "Verstappen (DB)", "Team": "Red Bull", "Punten": "144"},
-            ]
-            return demo_standings
+            all_laps = self.lap_model.get_laps_for_driver(session_id, self.player_car_index)
+
+            if not all_laps:
+                return None
+
+            return all_laps[-1]
+
         except Exception as e:
-            self.logger.error(f"Databasefout in get_tournament_standings: {e}")
+            self.logger.error(f"Fout bij ophalen get_player_lap_data: {e}", exc_info=True)
+            return None
+
+    def get_player_lap_history(self) -> List[Dict[str, Any]]:
+        """
+        Haalt *alle* opgeslagen rondes op voor de speler.
+        """
+        session_id = self.get_current_session_id()
+
+        if session_id is None:
+            self.logger.debug("get_player_lap_history: Geen actieve sessie.")
             return []
 
-    def get_current_session_id(self):
-        self.logger.warning("TelemetryController.get_current_session_id aangeroepen (placeholder).")
+        if self.player_car_index is None:
+            self.logger.debug("get_player_lap_history: Player car index is nog onbekend.")
+            return []
+
+        try:
+            all_laps = self.lap_model.get_laps_for_driver(session_id, self.player_car_index)
+            return all_laps
+
+        except Exception as e:
+            self.logger.error(f"Fout bij ophalen get_player_lap_history: {e}", exc_info=True)
+            return []
+
+    # --- METHODES VOOR DATA OPSLAG (bestaand) ---
+
+    def update_lap_data(self, lap_data: LapData, session_uid: int, car_index: int):
+        """
+        Ontvangt LapData (Packet 2) van de DataProcessor
+        en slaat deze op in de database.
+        """
+
+        if self.player_car_index is None:
+            self.player_car_index = car_index
+
+        current_db_id = self._get_db_session_id(session_uid)
+
+        if current_db_id is None:
+            self.logger.warning(
+                f"Ontving LapData (UID {session_uid}), maar sessie is nog niet in DB. Data wordt genegeerd.")
+            return
+
+        # --- HIER IS DE FIX (snake_case) ---
+        # Gebruik de Python-attributen van de LapData dataclass
+        lap_number_to_save = lap_data.current_lap_num - 1
+        # --- EINDE FIX ---
+
+        if lap_number_to_save <= 0:
+            return
+
+        try:
+            # --- HIER IS DE FIX (snake_case) ---
+            s1_ms = self._convert_sector_time(lap_data.sector1_time_minutes_part, lap_data.sector1_time_ms_part)
+            s2_ms = self._convert_sector_time(lap_data.sector2_time_minutes_part, lap_data.sector2_time_ms_part)
+            s3_ms = self._calculate_sector3(lap_data.last_lap_time_in_ms, s1_ms, s2_ms)
+
+            lap_data_dict = {
+                'session_id': current_db_id,
+                'car_index': car_index,
+                'lap_number': lap_number_to_save,
+                'lap_time_ms': lap_data.last_lap_time_in_ms,
+                'sector1_ms': s1_ms,
+                'sector2_ms': s2_ms,
+                'sector3_ms': s3_ms,
+                'is_valid': not bool(lap_data.current_lap_invalid),
+                'sector1_valid': s1_ms is not None,
+                'sector2_valid': s2_ms is not None,
+                'sector3_valid': s3_ms is not None,
+            }
+            # --- EINDE FIX ---
+
+            if self.validator.validate_lap_data(lap_data_dict):
+                self.lap_model.save_lap(lap_data_dict)
+            else:
+                self.logger.warning(f"Lap data (P2) faalde validatie: {lap_data_dict}")
+
+        except Exception as e:
+            self.logger.error(f"Fout bij opslaan lap data (P2): {e}", exc_info=True)
+
+    def update_lap_validation(self, history_packet: SessionHistoryData, session_uid: int):
+        """
+        Ontvangt SessionHistory (Packet 11) en werkt de
+        definitieve validatie-status bij in de database.
+        (Deze functie was al correct en gebruikt snake_case)
+        """
+        current_db_id = self._get_db_session_id(session_uid)
+
+        if current_db_id is None:
+            self.logger.warning(
+                f"Ontving History (UID {session_uid}), maar sessie is niet in DB. Data wordt genegeerd.")
+            return
+
+        car_index = history_packet.car_idx
+
+        if self.player_car_index is None:
+            # Aanname: de history is van de speler
+            self.player_car_index = car_index
+
+        self.logger.debug(f"Verwerken Packet 11 (History) voor auto {car_index} in sessie {current_db_id}")
+
+        for i in range(history_packet.num_laps):
+            lap_history: LapHistoryData = history_packet.lap_history_data[i]
+            lap_number = i + 1  # Ronden zijn 1-based
+
+            validation_dict = self.validator.parse_lap_validation_flags(
+                lap_history.lap_valid_bit_flags
+            )
+
+            s1_ms = lap_history.get_sector1_total_ms()
+            s2_ms = lap_history.get_sector2_total_ms()
+            s3_ms = lap_history.get_sector3_total_ms()
+
+            if s1_ms == 0: s1_ms = None
+            if s2_ms == 0: s2_ms = None
+            if s3_ms == 0: s3_ms = None
+
+            try:
+                lap_data_dict = {
+                    'session_id': current_db_id,
+                    'car_index': car_index,
+                    'lap_number': lap_number,
+                    'lap_time_ms': lap_history.lap_time_ms,
+                    'sector1_ms': s1_ms,
+                    'sector2_ms': s2_ms,
+                    'sector3_ms': s3_ms,
+                    'is_valid': validation_dict['is_valid'],
+                    'sector1_valid': validation_dict['sector1_valid'],
+                    'sector2_valid': validation_dict['sector2_valid'],
+                    'sector3_valid': validation_dict['sector3_valid'],
+                }
+
+                self.lap_model.save_lap(lap_data_dict)
+
+            except Exception as e:
+                self.logger.error(f"Fout bij opslaan lap validatie (P11): {e}", exc_info=True)
+
+    def _get_db_session_id(self, session_uid: int) -> Optional[int]:
+        """
+        Interne helper om de DB primary key (id) te krijgen
+        van de session_uid (uit de packets).
+        """
+        session = self.session_model.get_session_by_uid(session_uid)
+        if session:
+            self.session_model.current_session_id = session['id']
+            return session.get('id')
+
+        current_id = self.session_model.get_current_session_id()
+        if current_id:
+            return current_id
+
+        return None
+
+    def _convert_sector_time(self, minutes: int, ms_part: int) -> Optional[int]:
+        """Helper: Converteer F1 25 sector tijd (min + ms) naar pure MS"""
+        if minutes == 255 or ms_part == 65535:
+            return None
+        total_ms = (minutes * 60 * 1000) + ms_part
+        return total_ms if total_ms > 0 else None
+
+    def _calculate_sector3(self, lap_ms: int, s1_ms: Optional[int], s2_ms: Optional[int]) -> Optional[int]:
+        """Helper: Bereken S3 tijd (voor Packet 2)."""
+        if lap_ms and s1_ms and s2_ms and lap_ms > 0 and (s1_ms + s2_ms) < lap_ms:
+            return lap_ms - s1_ms - s2_ms
         return None

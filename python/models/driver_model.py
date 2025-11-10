@@ -17,7 +17,7 @@ class DriverModel:
     
     def save_driver(self, driver_data: Dict[str, Any]) -> bool:
         """
-        Sla driver op in database
+        Sla driver op in database (UPSERT)
         
         Args:
             driver_data: Dict met driver informatie

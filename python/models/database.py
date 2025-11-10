@@ -107,7 +107,7 @@ class Database:
                     is_valid BOOLEAN DEFAULT TRUE,
                     recorded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                     FOREIGN KEY (session_id) REFERENCES sessions(id) ON DELETE CASCADE,
-                    INDEX idx_session_car_lap (session_id, car_index, lap_number),
+                    UNIQUE KEY unique_lap (session_id, car_index, lap_number),
                     INDEX idx_session_valid (session_id, is_valid)
                 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
             """,

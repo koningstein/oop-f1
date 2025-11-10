@@ -144,22 +144,13 @@ class SessionModel:
         
         return success
     
-    def get_current_session_id(self) -> Optional[int]:
-        """
-        Verkrijg huidige actieve session ID
-        
-        Returns:
-            Session ID of None
-        """
-        return self.current_session_id
-    
     def get_recent_sessions(self, limit: int = 10) -> list:
         """
         Haal recente sessies op
-        
+
         Args:
             limit: Aantal sessies
-            
+
         Returns:
             List met session dicts
         """
@@ -169,3 +160,13 @@ class SessionModel:
             LIMIT %s
         """
         return self.db.fetch_all(query, (limit,))
+
+    # --- HIER IS DE FIX (ONTBREKENDE FUNCTIE) ---
+    def get_current_session_id(self) -> Optional[int]:
+        """
+        Verkrijg huidige actieve session ID
+
+        Returns:
+            Session ID of None
+        """
+        return self.current_session_id
