@@ -1,6 +1,6 @@
 """
 F1 25 Telemetry System - Main Application
-(Versie 6: Gecorrigeerde run() loop logica)
+(Versie 6.1: Gecorrigeerde run() loop + SessionController Injectie)
 """
 
 # --- SYSTEEM IMPORT FIX ---
@@ -23,7 +23,10 @@ except ImportError:
     msvcrt = None
 
 from services import logger_service, UDPListener
-from controllers import TelemetryController, MenuController, DataProcessor
+# --- AANGEPAST: SessionController toevoegen ---
+from controllers import TelemetryController, MenuController, DataProcessor, SessionController
+# --- EINDE AANPASSING ---
+
 from views import MenuView, Screen1Overview, Screen2Timing, Screen3Telemetry
 from views import Screen4Standings, Screen5Comparison, Screen6History
 
@@ -34,6 +37,27 @@ from views.screen1_features.race_view import RaceView
 from views.screen1_features.tournament_view import TournamentView
 from views.screen1_features.position_chart_view import PositionChartView
 
+# --- STAP 4 TOEVOEGINg 1: DATABASE INITIALISATIE ---
+# (Dit is de import die we in Stap 4 hebben toegevoegd en die jij had)
+try:
+    from models.database import database
+
+    db_init_logger = logger_service.get_logger('DatabaseInit')
+    if not database._pool:
+        db_init_logger.critical("Database pool (database._pool) is None NA import.")
+        raise Exception("Database pool kon niet worden geïnitialiseerd (None).")
+
+    db_init_logger.info("Database Singleton succesvol geïmporteerd en pool is actief.")
+
+except Exception as db_init_e:
+    print(f"FATALE FOUT bij initialiseren database: {db_init_e}", file=sys.stderr)
+    print("Controleer je MySQL server en de DATABASE instellingen in config.py.", file=sys.stderr)
+    sys.exit(1)
+
+
+# --- EINDE TOEVOEGINg 1 ---
+
+
 class F1TelemetryApp:
     """Hoofd applicatie klasse met submenu ondersteuning"""
 
@@ -41,9 +65,19 @@ class F1TelemetryApp:
         self.logger = logger_service.get_logger('MainApp')
         self.logger.info("F1 25 Telemetry System wordt gestart...")
 
+        # --- AANGEPAST: Controllers initialiseren ---
+        # We moeten controllers die de DataProcessor nodig heeft *eerst* aanmaken
+        self.session_controller = SessionController()
         self.telemetry_controller = TelemetryController()
         self.menu_controller = MenuController()
-        self.data_processor = DataProcessor(self.telemetry_controller)
+
+        # Nu de DataProcessor, en *injecteer* beide controllers
+        self.data_processor = DataProcessor(
+            telemetry_controller=self.telemetry_controller,
+            session_controller=self.session_controller
+        )
+        # --- EINDE AANPASSING ---
+
         self.udp_listener = UDPListener(
             packet_handler=self.data_processor.process_packet
         )
@@ -100,7 +134,8 @@ class F1TelemetryApp:
             try:
                 if key == b'\r': return None
                 return key.decode('utf-8')
-            except UnicodeDecodeError: return None
+            except UnicodeDecodeError:
+                return None
         return None
 
     def start(self):
@@ -123,72 +158,45 @@ class F1TelemetryApp:
             self.stop()
             sys.exit(1)
 
-    # --- GECORRIGEERDE run() METHODE ---
+    # --- GECORRIGEERDE run() METHODE (jouw V6) ---
     def run(self):
         """Main application loop met automatische live-view detectie."""
-
         last_refresh_time = time.time()
-        refresh_interval = 1.0  # Refresh interval voor live views
-
+        refresh_interval = 1.0
         while self.running:
             try:
                 choice = None
-                # Check de status AAN HET BEGIN van de loop
                 is_live_view_active = self.menu_controller.is_current_view_live()
-
                 if is_live_view_active:
-                    # --- LIVE VIEW MODUS (NON-BLOCKING) ---
                     choice = self.get_non_blocking_input()
-
                     current_time = time.time()
                     if (current_time - last_refresh_time) < refresh_interval:
                         if not choice:
-                            time.sleep(0.05) # Voorkom 100% CPU load
+                            time.sleep(0.05)
                             continue
-
                     last_refresh_time = current_time
-
-                    self.menu_controller.render_current_screen() # Render de live view
+                    self.menu_controller.render_current_screen()
                     self.menu_view.show_status(self.udp_listener)
-                    self.menu_view.show_menu() # Toont "Actie (B=terug...)"
+                    self.menu_view.show_menu()
                     print(f"  AUTO-REFRESH AAN. Druk 'B' (terug) of '0' (afsluiten)...")
-
                 else:
-                    # --- NORMAAL MENU MODUS (BLOCKING) ---
-                    self.menu_controller.render_current_screen() # Render het menu
+                    self.menu_controller.render_current_screen()
                     self.menu_view.show_status(self.udp_listener)
-                    self.menu_view.show_menu() # Toont het menu (1-6 of 1.1-1.5)
+                    self.menu_view.show_menu()
                     choice = self.menu_view.get_user_input()
-
                 if not choice:
                     continue
-
-                # --- VERWERK DE INPUT ---
                 continue_running = self.menu_controller.handle_input(choice)
-
                 if not continue_running:
                     self.running = False
                     break
-
-                # --- GECORRIGEERDE LOGICA ---
-                # Na het verwerken van de input, check de *NIEUWE* status.
                 is_NOW_live = self.menu_controller.is_current_view_live()
-
-                # Als we NIET in een live view zijn, EN we zijn in een functie
-                # (niet een menu), DAN is het een statisch scherm.
                 if not is_NOW_live and \
-                   not self.menu_controller.is_in_submenu_mode() and \
-                   self.menu_controller.get_current_submenu() is not None:
-
+                        not self.menu_controller.is_in_submenu_mode() and \
+                        self.menu_controller.get_current_submenu() is not None:
                     print("\nStatisch scherm. Druk ENTER om terug te gaan...")
                     input()
-                    # Na 'enter', ga automatisch terug
                     self.menu_controller.back_to_submenu()
-
-                # Als de view NU wel live is, doet de loop niets
-                # en gaat naar de *volgende iteratie*, waar
-                # 'is_live_view_active' bovenaan True zal zijn.
-
             except KeyboardInterrupt:
                 self.logger.info("Onderbroken door gebruiker")
                 self.running = False
@@ -197,24 +205,31 @@ class F1TelemetryApp:
                 self.logger.error(f"Fout in main loop: {e}", exc_info=True)
                 self.menu_view.show_error(f"Onverwachte fout: {e}")
                 time.sleep(2)
-
         self.stop()
 
     def stop(self):
         """Stop de applicatie"""
         if hasattr(self, 'udp_listener'):
             self.udp_listener.stop()
-
         if hasattr(self, 'menu_controller'):
             self.menu_controller.stop()
-
         self.running = False
         self.logger.info("F1 25 Telemetry System gestopt")
 
+
 def main():
     """Main entry point"""
+
+    # --- STAP 4 TOEVOEGINg 2: MAIN FUNCTIE CHECK ---
+    # (Jouw code)
+    if not database._pool:
+        print("FATALE FOUT: Database pool kon niet worden geverifieerd in main().", file=sys.stderr)
+        sys.exit(1)
+    # --- EINDE TOEVOEGINg 2 ---
+
     app = F1TelemetryApp()
     app.start()
+
 
 if __name__ == "__main__":
     main()
