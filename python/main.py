@@ -1,6 +1,6 @@
 """
 F1 25 Telemetry System - Main Application
-(Versie 6.1: Gecorrigeerde run() loop + SessionController Injectie)
+(Versie 9.3: Logbestand legen bij start + V9.2 Injecties)
 """
 
 # --- SYSTEEM IMPORT FIX ---
@@ -14,6 +14,32 @@ if project_root not in sys.path:
     sys.path.insert(0, project_root)
 # --- EINDE SYSTEEM IMPORT FIX ---
 
+# --- AANPASSING V9.3: LOGBESTAND LEGEN ---
+# Regel dat de telemetry.log leeg gemaakt wordt zodra main.py gestart wordt
+try:
+    # Bouw het pad naar het logbestand (relatief aan deze main.py)
+    log_file_path = os.path.join(project_root, 'logs', 'telemetry.log')
+
+    # Controleer of de 'logs' map bestaat, zo niet, maak hem aan
+    log_dir = os.path.dirname(log_file_path)
+    if not os.path.exists(log_dir):
+        os.makedirs(log_dir)
+        print(f"[MAIN_INIT] Log map aangemaakt op: {log_dir}", file=sys.stdout)
+
+    # Open het bestand in 'write' modus ('w') om het te legen (truncate)
+    # Als het bestand niet bestaat, wordt het hierdoor ook aangemaakt.
+    with open(log_file_path, 'w') as f:
+        pass  # Het bestand is nu leeg of aangemaakt
+
+except IOError as e:
+    # Dit print naar de console, aangezien de logger nog niet actief is
+    print(f"[MAIN_INIT] WAARSCHUWING: Kon logbestand {log_file_path} niet legen: {e}", file=sys.stderr)
+except Exception as e:
+    print(f"[MAIN_INIT] FATALE FOUT bij voorbereiden logbestand: {e}", file=sys.stderr)
+    sys.exit(1)  # We stoppen als de logs niet kunnen worden voorbereid
+# --- EINDE AANPASSING V9.3 ---
+
+
 from typing import Optional
 
 # Non-blocking input (Windows-specifiek)
@@ -22,10 +48,9 @@ try:
 except ImportError:
     msvcrt = None
 
+# NU pas importeren we de logger_service, die het (nu lege) bestand zal gebruiken
 from services import logger_service, UDPListener
-# --- AANGEPAST: SessionController toevoegen ---
 from controllers import TelemetryController, MenuController, DataProcessor, SessionController
-# --- EINDE AANPASSING ---
 
 from views import MenuView, Screen1Overview, Screen2Timing, Screen3Telemetry
 from views import Screen4Standings, Screen5Comparison, Screen6History
@@ -37,11 +62,11 @@ from views.screen1_features.race_view import RaceView
 from views.screen1_features.tournament_view import TournamentView
 from views.screen1_features.position_chart_view import PositionChartView
 
-# --- STAP 4 TOEVOEGINg 1: DATABASE INITIALISATIE ---
-# (Dit is de import die we in Stap 4 hebben toegevoegd en die jij had)
+# --- DATABASE INITIALISATIE ---
 try:
     from models.database import database
 
+    # De logger service is nu beschikbaar
     db_init_logger = logger_service.get_logger('DatabaseInit')
     if not database._pool:
         db_init_logger.critical("Database pool (database._pool) is None NA import.")
@@ -51,11 +76,16 @@ try:
 
 except Exception as db_init_e:
     print(f"FATALE FOUT bij initialiseren database: {db_init_e}", file=sys.stderr)
+    # Probeer ook naar de logger te schrijven, als die al draait
+    try:
+        logger_service.get_logger('MainApp').error(f"FATALE FOUT DB init: {db_init_e}", exc_info=True)
+    except:
+        pass
     print("Controleer je MySQL server en de DATABASE instellingen in config.py.", file=sys.stderr)
     sys.exit(1)
 
 
-# --- EINDE TOEVOEGINg 1 ---
+# --- EINDE DATABASE INITIALISATIE ---
 
 
 class F1TelemetryApp:
@@ -64,11 +94,11 @@ class F1TelemetryApp:
     def __init__(self):
         self.logger = logger_service.get_logger('MainApp')
         self.logger.info("F1 25 Telemetry System wordt gestart...")
+        self.logger.info("Logbestand succesvol geleegd (V9.3 init)")
 
-        # --- AANGEPAST: Controllers initialiseren ---
-        # We moeten controllers die de DataProcessor nodig heeft *eerst* aanmaken
+        # --- AANGEPAST (V9.2): Controllers initialiseren ---
         self.session_controller = SessionController()
-        self.telemetry_controller = TelemetryController()
+        self.telemetry_controller = TelemetryController(session_controller=self.session_controller)
         self.menu_controller = MenuController()
 
         # Nu de DataProcessor, en *injecteer* beide controllers
@@ -76,7 +106,7 @@ class F1TelemetryApp:
             telemetry_controller=self.telemetry_controller,
             session_controller=self.session_controller
         )
-        # --- EINDE AANPASSING ---
+        # --- EINDE AANGEPAST ---
 
         self.udp_listener = UDPListener(
             packet_handler=self.data_processor.process_packet
@@ -220,12 +250,11 @@ class F1TelemetryApp:
 def main():
     """Main entry point"""
 
-    # --- STAP 4 TOEVOEGINg 2: MAIN FUNCTIE CHECK ---
-    # (Jouw code)
+    # --- MAIN FUNCTIE DB CHECK ---
     if not database._pool:
         print("FATALE FOUT: Database pool kon niet worden geverifieerd in main().", file=sys.stderr)
         sys.exit(1)
-    # --- EINDE TOEVOEGINg 2 ---
+    # --- EINDE CHECK ---
 
     app = F1TelemetryApp()
     app.start()

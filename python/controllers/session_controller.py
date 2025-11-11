@@ -1,7 +1,7 @@
 """
 F1 25 Telemetry System - Session Controller
 Controller voor sessie lifecycle management
-(Versie 1.1: Toevoeging process_session_packet)
+(Versie 9.4: Correctie AttributeError 'game_version' -> 'packet_version')
 """
 
 from typing import Optional, Dict, Any
@@ -100,7 +100,6 @@ class SessionController:
             return existing['id']
 
         # Maak nieuwe sessie
-        # Let op: zorg dat 'session_duration' in je SessionData parser bestaat
         session_dict = {
             'session_uid': session_uid,
             'track_id': session_data.track_id,
@@ -109,7 +108,7 @@ class SessionController:
             'track_temperature': session_data.track_temperature,
             'air_temperature': session_data.air_temperature,
             'total_laps': session_data.total_laps,
-            'session_duration': getattr(session_data, 'session_duration', 0)  # Fout-tolerant
+            'session_duration': getattr(session_data, 'session_duration', 0)
         }
 
         # We gaan ervan uit dat session_model.create_session de ID retourneert
@@ -140,7 +139,6 @@ class SessionController:
             self.logger.warning("Geen actieve sessie om te updaten")
             return
 
-        # Update alleen specifieke velden die kunnen wijzigen
         updates = {
             'weather': session_data.weather,
             'track_temperature': session_data.track_temperature,
@@ -156,9 +154,7 @@ class SessionController:
             return
 
         self.session_model.end_session(self.current_session_id)
-
         self.logger.info(f"Sessie beëindigd: ID {self.current_session_id}")
-
         self.session_active = False
         self.current_session_id = None
         self.current_session_uid = None
@@ -190,7 +186,6 @@ class SessionController:
         """
         if not self.current_session_uid:
             return None
-
         return self.session_model.get_session_by_uid(self.current_session_uid)
 
     def get_session_statistics(self) -> Dict[str, Any]:
@@ -207,10 +202,7 @@ class SessionController:
                 'total_laps': 0
             }
 
-        # Haal leaderboard op
         leaderboard = self.lap_model.get_session_leaderboard(self.current_session_id)
-
-        # Tel totaal aantal laps
         total_laps = 0
         for entry in leaderboard:
             lap_count = self.lap_model.get_lap_count(
@@ -227,7 +219,75 @@ class SessionController:
             'fastest_lap': leaderboard[0] if leaderboard else None
         }
 
+    # --- AANPASSING V9.2: NIEUWE METHODE ---
+    # --- AANPASSING V9.4: FIX ATTRIBUTEERROR ---
+    def create_placeholder_session(self, header: PacketHeader) -> Optional[int]:
+        """
+        Aangeroepen door TelemetryController (vanuit P11) als P1 blijkbaar
+        heeft gefaald. Maakt een 'placeholder' sessie aan.
+
+        Retourneert de nieuwe database 'id' (PK) van de sessie.
+        """
+        session_uid = header.session_uid
+        if not session_uid or session_uid == 0:
+            self.logger.warning("create_placeholder_session: Header (P11) bevat geen geldige session_uid.")
+            return None
+
+        # Controleer EERST of hij niet al bestaat (race condition)
+        existing = self.session_model.get_session_by_uid(session_uid)
+        if existing:
+            self.logger.info(
+                f"create_placeholder_session: Sessie {session_uid} bestond al (race condition opgelost). ID: {existing.get('id')}")
+            return existing.get('id')
+
+        self.logger.info(f"create_placeholder_session: P1-parser falen gedetecteerd. "
+                         f"Placeholder sessie wordt aangemaakt voor UID {session_uid}")
+
+        # Maak een minimaal data-object.
+        session_data = {
+            'session_uid': session_uid,
+            'track_id': -1,  # Onbekend
+            'session_type': 0,  # Onbekend
+            'weather': 0,
+            'track_temperature': 0,
+            'air_temperature': 0,
+            'total_laps': 0,
+            'session_duration': 0,
+            'packet_format': header.packet_format,
+
+            # --- FIX V9.4 ---
+            # De log (en jouw class) zegt dat het 'packet_version' is,
+            # niet 'game_version'.
+            'game_version': str(header.packet_version)
+            # --- EINDE FIX V9.4 ---
+        }
+
+        try:
+            # Probeer de sessie aan te maken
+            db_session_id = self.session_model.create_session(session_data)
+
+            if db_session_id:
+                self.logger.info(
+                    f"Placeholder sessie succesvol aangemaakt met DB ID {db_session_id} voor UID {session_uid}")
+                return db_session_id
+            else:
+                self.logger.error(f"session_model.create_session retourneerde geen ID voor UID {session_uid}")
+                return None
+
+        except Exception as e:
+            if 'Duplicate' in str(e) or 'UNIQUE' in str(e):
+                self.logger.warning(
+                    f"Race condition in create_placeholder_session: Sessie {session_uid} bestaat al. Opnieuw proberen op te halen.")
+                existing_session = self.session_model.get_session_by_uid(session_uid)
+                if existing_session:
+                    return existing_session.get('id')
+
+            self.logger.error(f"Onverwachte DB-fout bij aanmaken placeholder sessie voor UID {session_uid}: {e}",
+                              exc_info=True)
+            return None
+
+    # --- EINDE METHODE ---
+
     def cleanup_session_data(self):
         """Ruim oude sessie data op"""
-        # Optioneel: implementeer cleanup van oude telemetrie data
         pass
